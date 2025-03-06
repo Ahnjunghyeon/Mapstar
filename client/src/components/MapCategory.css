@@ -1,0 +1,22 @@
+.category-buttons {
+  margin-bottom: 10px;
+}
+
+.category-buttons button {
+  margin: 5px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  color: #000;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.category-buttons button:hover {
+  background-color: #ddd;
+}
+
+.category-buttons button[style*="background-color: #4CAF50"] {
+  background-color: #4caf50;
+  color: white;
+}
