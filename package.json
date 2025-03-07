@@ -13,5 +13,8 @@
   "description": "",
   "devDependencies": {
     "concurrently": "^9.1.2"
+  },
+  "dependencies": {
+    "react-kakao-maps-sdk": "^1.1.27"
   }
 }
