@@ -1,20 +1,13 @@
 import React, { useState } from "react";
+import "./MapCategory.css";
 
 const MapCategory = ({ map }) => {
+  const [categoryMarkers, setCategoryMarkers] = useState({});
+  const [placeInfo, setPlaceInfo] = useState(null);
+
   const categoryCodes = {
     대형마트: "MT1",
     편의점: "CS2",
-    "어린이집, 유치원": "PS3",
-    학교: "SC4",
-    학원: "AC5",
-    주차장: "PK6",
-    "주유소, 충전소": "OL7",
-    지하철역: "SW8",
-    은행: "BK9",
-    문화시설: "CT1",
-    공공기관: "PO3",
-    관광명소: "AT4",
-    숙박: "AD5",
     음식점: "FD6",
     카페: "CE7",
     병원: "HP8",
@@ -26,84 +19,104 @@ const MapCategory = ({ map }) => {
     편의점:
       "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
     음식점: "https://example.com/blue-marker.png",
-    카페: "https://example.com/yellow-marker.png",
-    병원: "https://example.com/purple-marker.png",
-    약국: "https://example.com/orange-marker.png",
   };
-
-  const [categoryData, setCategoryData] = useState({});
-
-  const defaultMarkerImage = "/markers/default-marker.png";
 
   const toggleCategory = (category) => {
     if (!map) return;
 
     const ps = new window.kakao.maps.services.Places();
 
-    if (categoryData[category]) {
-      categoryData[category].markers.forEach((marker) => marker.setMap(null));
-      categoryData[category].clusterer.clear();
-
-      setCategoryData((prev) => {
-        const newData = { ...prev };
-        delete newData[category];
-        return newData;
+    if (categoryMarkers[category]) {
+      categoryMarkers[category].forEach((marker) => marker.setMap(null));
+      setCategoryMarkers((prev) => {
+        const newMarkers = { ...prev };
+        delete newMarkers[category];
+        return newMarkers;
       });
     } else {
       ps.categorySearch(
         categoryCodes[category],
         (data, status) => {
+          console.log("검색된 장소 데이터:", data);
+          console.log("검색 상태:", status);
+
           if (status === window.kakao.maps.services.Status.OK) {
             const newMarkers = data.map((place) => {
               const position = new window.kakao.maps.LatLng(place.y, place.x);
-              return new window.kakao.maps.Marker({
+              const marker = new window.kakao.maps.Marker({
                 position,
+                map,
                 image: new window.kakao.maps.MarkerImage(
-                  categoryColors[category] || defaultMarkerImage,
+                  categoryColors[category] || "/default-marker.png",
                   new window.kakao.maps.Size(24, 35)
                 ),
               });
+
+              window.kakao.maps.event.addListener(marker, "click", () => {
+                setPlaceInfo({
+                  name: place.place_name,
+                  address: place.address_name,
+                  phone: place.phone,
+                  placeUrl: place.place_url,
+                });
+              });
+
+              return marker;
             });
 
-            const clusterer = new window.kakao.maps.MarkerClusterer({
-              map,
-              averageCenter: true,
-              minLevel: 10,
-            });
-            clusterer.addMarkers(newMarkers);
-
-            setCategoryData((prev) => ({
+            setCategoryMarkers((prev) => ({
               ...prev,
-              [category]: { markers: newMarkers, clusterer },
+              [category]: newMarkers,
             }));
+          } else {
+            console.log("검색 실패: ", status);
           }
         },
         {
-          bounds: map.getBounds(),
+          location: map.getCenter(),
+          radius: 10000,
         }
       );
     }
   };
 
   return (
-    <div style={{ marginTop: "20px" }}>
+    <div className="map-category-container">
       {Object.keys(categoryCodes).map((category) => (
         <button
           key={category}
           onClick={() => toggleCategory(category)}
-          style={{
-            margin: "5px",
-            padding: "8px 12px",
-            backgroundColor: categoryData[category] ? "#ffdd57" : "#007bff",
-            color: "#fff",
-            border: "none",
-            borderRadius: "4px",
-            transition: "background-color 0.3s",
-          }}
+          className={`category-button ${
+            categoryMarkers[category] ? "active" : ""
+          }`}
         >
           {category}
         </button>
       ))}
+
+      {placeInfo && (
+        <div className="place-info">
+          <h3>장소 정보</h3>
+          <p>
+            <strong>장소 이름:</strong> {placeInfo.name}
+          </p>
+          <p>
+            <strong>주소:</strong> {placeInfo.address}
+          </p>
+          <p>
+            <strong>전화번호:</strong> {placeInfo.phone}
+          </p>
+          <p>
+            <a
+              href={placeInfo.placeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              더 보기
+            </a>
+          </p>
+        </div>
+      )}
     </div>
   );
 };
