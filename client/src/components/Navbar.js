@@ -1,5 +1,4 @@
-// 임시 Navbar
-
+// 임시
 import React from "react";
 import "./Navbar.css";
 

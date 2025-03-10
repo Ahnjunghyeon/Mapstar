@@ -26,3 +26,33 @@
 .reset-button:hover {
   background-color: #0056b3;
 }
+
+.marker-action {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.save-marker-button,
+.remove-marker-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.save-marker-button {
+  background-color: #28a745;
+  color: white;
+}
+
+.remove-marker-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+.save-marker-button:hover,
+.remove-marker-button:hover {
+  opacity: 0.8;
+}

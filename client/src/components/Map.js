@@ -1,14 +1,13 @@
 import React, { useRef, useState, useEffect } from "react";
+import axios from "axios"; // axios 추가
 import MapCategory from "./MapCategory";
 import MapSearch from "./MapSearch";
-import PlaceInfo from "./PlaceInfo";
 import "./Map.css";
 
-const Map = ({ selectedRegion }) => {
+const Map = ({ selectedRegion, user }) => {
   const mapContainer = useRef(null);
   const [map, setMap] = useState(null);
   const [marker, setMarker] = useState(null);
-  const [placeInfo, setPlaceInfo] = useState(null);
   const [searchResults, setSearchResults] = useState(null);
   const [address, setAddress] = useState("");
   const [isCategoryActive, setIsCategoryActive] = useState(false);
@@ -47,7 +46,7 @@ const Map = ({ selectedRegion }) => {
     const position = new window.kakao.maps.LatLng(results.lat, results.lng);
 
     if (marker) {
-      marker.setMap(null);
+      marker.setMap(null); // 기존 마커 제거
     }
 
     const newMarker = new window.kakao.maps.Marker({
@@ -57,7 +56,7 @@ const Map = ({ selectedRegion }) => {
     newMarker.setMap(map);
     map.panTo(position);
 
-    setMarker(newMarker);
+    setMarker(newMarker); // 새로운 마커 설정
   };
 
   const handleAddressChange = (newAddress) => {
@@ -93,9 +92,8 @@ const Map = ({ selectedRegion }) => {
         setMarker={setMarker}
         handleSearchResults={handleSearchResults}
         handleAddressChange={handleAddressChange}
-        setPlaceInfo={setPlaceInfo}
       />
-      {placeInfo && <PlaceInfo placeInfo={placeInfo} />}
+
       <button onClick={resetMapPosition} className="reset-button">
         ⟳
       </button>

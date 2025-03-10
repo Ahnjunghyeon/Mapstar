@@ -76,3 +76,45 @@ app.post("/api/login", (req, res) => {
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+
+app.post("/api/save-marker", (req, res) => {
+  const { userId, lat, lng, name, address } = req.body;
+
+  const query =
+    "INSERT INTO markers (user_id, lat, lng, name, address) VALUES (?, ?, ?, ?, ?)";
+  connection.query(query, [userId, lat, lng, name, address], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    res.status(200).json({ message: "Marker saved successfully" });
+  });
+});
+
+app.get("/api/get-saved-markers", (req, res) => {
+  const userId = req.query.userId; // 로그인한 유저 ID
+
+  const query = "SELECT * FROM markers WHERE user_id = ?";
+  connection.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    res.status(200).json(results);
+  });
+});
+
+// 마커관련
+app.post("/api/save-marker", (req, res) => {
+  const { userId, lat, lng, name, address } = req.body;
+
+  const query =
+    "INSERT INTO markers (user_id, lat, lng, name, address) VALUES (?, ?, ?, ?, ?)";
+  connection.query(query, [userId, lat, lng, name, address], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    res.status(200).json({ message: "Marker saved successfully" });
+  });
+});

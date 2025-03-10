@@ -19,9 +19,11 @@ const LoginModal = ({ closeModal, loginUser }) => {
       alert(response.data.message);
       console.log("User Data:", response.data.user);
 
-      loginUser(response.data.user);
+      // 로그인 성공 후, 로컬 스토리지에 사용자 정보 저장
+      localStorage.setItem("user", JSON.stringify(response.data.user));
 
-      closeModal();
+      loginUser(response.data.user); // 로그인 상태 업데이트
+      closeModal(); // 모달 닫기
     } catch (error) {
       setError(error.response?.data?.error || "Login failed");
     }

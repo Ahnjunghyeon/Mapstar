@@ -5,7 +5,6 @@ const MapSearch = ({
   setMarker,
   handleSearchResults,
   handleAddressChange,
-  setPlaceInfo,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -50,13 +49,6 @@ const MapSearch = ({
     newMarker.setMap(map);
 
     map.panTo(position);
-
-    setPlaceInfo({
-      name: item.place_name || item.address_name,
-      address: item.address_name || "주소 정보 없음",
-      phone: item.phone || "전화번호 정보 없음",
-      placeUrl: item.place_url || null,
-    });
 
     setCurrentMarker(newMarker);
     setSearchTerm("");
@@ -125,13 +117,6 @@ const MapSearch = ({
           });
           newMarker.setMap(map);
           map.panTo(position);
-
-          setPlaceInfo({
-            name: searchResults[0].place_name || searchResults[0].address_name,
-            address: searchResults[0].address_name || "주소 정보 없음",
-            phone: searchResults[0].phone || "전화번호 정보 없음",
-            placeUrl: searchResults[0].place_url || null,
-          });
 
           setCurrentMarker(newMarker);
           setErrorMessage("");
