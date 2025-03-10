@@ -2,23 +2,20 @@ import React, { useRef, useState, useEffect } from "react";
 import MapCategory from "./MapCategory";
 import MapSearch from "./MapSearch";
 import AddressSearch from "./AddressSearch";
-import RegionModal from "./RegionModal";
 import "./Map.css";
 
-const Map = () => {
+const Map = ({ selectedRegion }) => {
   const mapContainer = useRef(null);
   const [map, setMap] = useState(null);
   const [marker, setMarker] = useState(null);
   const [searchResults, setSearchResults] = useState(null);
   const [address, setAddress] = useState("");
-  const [selectedRegion, setSelectedRegion] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(true);
 
-  // 위치 서울시청 고정 --
-  const initialPosition = new window.kakao.maps.LatLng(37.5665, 126.978);
   const initialLevel = 5;
 
   useEffect(() => {
+    const initialPosition = new window.kakao.maps.LatLng(37.5665, 126.978);
+
     const script = document.createElement("script");
     script.src =
       "https://dapi.kakao.com/v2/maps/sdk.js?appkey=dbcb1d68fd3c35a30fe94a2c6307b7ef&libraries=services,clusterer,drawing,geometry";
@@ -46,6 +43,7 @@ const Map = () => {
   const resetMapPosition = () => {
     if (!map) return;
 
+    const initialPosition = new window.kakao.maps.LatLng(37.5665, 126.978);
     map.setLevel(initialLevel);
     map.panTo(initialPosition);
 
@@ -58,19 +56,8 @@ const Map = () => {
     setAddress("");
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
-
   return (
     <div className="map-container">
-      {isModalOpen && (
-        <RegionModal
-          setSelectedRegion={setSelectedRegion}
-          closeModal={closeModal}
-        />
-      )}
-
       <MapCategory map={map} />
       <MapSearch map={map} setMarker={setMarker} />
       <AddressSearch

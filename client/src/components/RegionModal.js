@@ -48,11 +48,12 @@ const RegionModal = ({ setSelectedRegion, closeModal }) => {
         }}
       >
         <h2>지역 선택</h2>
+        <button onClick={() => SelectModalClose()}> 닫기</button>
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           {regions.map((region) => (
             <button
               key={region.name}
-              onClick={() => handleSelectRegion(region)} // 클릭 시 지역 이동 및 모달 닫기
+              onClick={() => handleSelectRegion(region)}
               style={{
                 padding: "10px",
                 backgroundColor: "#007BFF",
@@ -66,7 +67,6 @@ const RegionModal = ({ setSelectedRegion, closeModal }) => {
               {region.name}
             </button>
           ))}
-          <button onClick={() => SelectModalClose()}> 닫기</button>
         </div>
       </div>
     </div>
