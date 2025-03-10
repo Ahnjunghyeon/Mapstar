@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import "./MapCategory.css";
-import StoreSearch from "./StoreSearch";
 
 const MapCategory = ({ map }) => {
   const [categoryMarkers, setCategoryMarkers] = useState({});
@@ -69,7 +68,6 @@ const MapCategory = ({ map }) => {
 
   return (
     <div className="map-category-container">
-      <StoreSearch map={map} />
       {Object.keys(categoryCodes)
         .slice(0, 7)
         .map((category) => (

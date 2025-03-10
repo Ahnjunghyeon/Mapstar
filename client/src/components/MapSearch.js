@@ -1,18 +1,31 @@
 import React, { useState, useEffect } from "react";
 
-const MapSearch = ({ map, setMarker }) => {
+const MapSearch = ({
+  map,
+  setMarker,
+  handleSearchResults,
+  handleAddressChange,
+  setPlaceInfo,
+}) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
-  const [placeInfo, setPlaceInfo] = useState(null);
+  const [currentMarker, setCurrentMarker] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     if (searchTerm) {
+      const geocoder = new window.kakao.maps.services.Geocoder();
       const ps = new window.kakao.maps.services.Places();
+
+      geocoder.addressSearch(searchTerm, (result, status) => {
+        if (status === window.kakao.maps.services.Status.OK) {
+          setSuggestions(result);
+        }
+      });
+
       ps.keywordSearch(searchTerm, (data, status) => {
         if (status === window.kakao.maps.services.Status.OK) {
           setSuggestions(data);
-        } else {
-          setSuggestions([]);
         }
       });
     } else {
@@ -20,14 +33,14 @@ const MapSearch = ({ map, setMarker }) => {
     }
   }, [searchTerm]);
 
-  const handleSuggestionClick = (place) => {
-    setSearchTerm(place.place_name);
+  const handleSuggestionClick = (item) => {
+    setSearchTerm(item.place_name || item.address_name);
     setSuggestions([]);
 
-    const position = new window.kakao.maps.LatLng(place.y, place.x);
+    const position = new window.kakao.maps.LatLng(item.y, item.x);
 
-    if (placeInfo) {
-      placeInfo.setMap(null);
+    if (currentMarker) {
+      currentMarker.setMap(null);
     }
 
     const newMarker = new window.kakao.maps.Marker({
@@ -39,11 +52,106 @@ const MapSearch = ({ map, setMarker }) => {
     map.panTo(position);
 
     setPlaceInfo({
-      name: place.place_name,
-      address: place.address_name,
-      phone: place.phone,
-      placeUrl: place.place_url,
+      name: item.place_name || item.address_name,
+      address: item.address_name || "주소 정보 없음",
+      phone: item.phone || "전화번호 정보 없음",
+      placeUrl: item.place_url || null,
     });
+
+    setCurrentMarker(newMarker);
+    setSearchTerm("");
+  };
+
+  const handleSearchButtonClick = () => {
+    if (searchTerm) {
+      const geocoder = new window.kakao.maps.services.Geocoder();
+      const ps = new window.kakao.maps.services.Places();
+
+      let searchResults = [];
+
+      geocoder.addressSearch(searchTerm, (result, status) => {
+        if (status === window.kakao.maps.services.Status.OK) {
+          searchResults = searchResults.concat(result);
+        }
+      });
+
+      ps.keywordSearch(searchTerm, (data, status) => {
+        if (status === window.kakao.maps.services.Status.OK) {
+          searchResults = searchResults.concat(data);
+        }
+
+        if (searchResults.length === 0) {
+          setErrorMessage("해당하는 곳이 없습니다.");
+        } else {
+          searchResults = searchResults.sort((a, b) => {
+            const aContainsSearchTerm = (
+              a.place_name || a.address_name
+            ).includes(searchTerm);
+            const bContainsSearchTerm = (
+              b.place_name || b.address_name
+            ).includes(searchTerm);
+
+            if (aContainsSearchTerm && !bContainsSearchTerm) {
+              return -1;
+            } else if (!aContainsSearchTerm && bContainsSearchTerm) {
+              return 1;
+            }
+
+            const aSimilarity = getStringSimilarity(
+              searchTerm,
+              a.place_name || a.address_name
+            );
+            const bSimilarity = getStringSimilarity(
+              searchTerm,
+              b.place_name || b.address_name
+            );
+            return bSimilarity - aSimilarity;
+          });
+
+          setSuggestions(searchResults);
+
+          const position = new window.kakao.maps.LatLng(
+            searchResults[0].y,
+            searchResults[0].x
+          );
+
+          if (currentMarker) {
+            currentMarker.setMap(null);
+          }
+
+          const newMarker = new window.kakao.maps.Marker({
+            position,
+            map,
+          });
+          newMarker.setMap(map);
+          map.panTo(position);
+
+          setPlaceInfo({
+            name: searchResults[0].place_name || searchResults[0].address_name,
+            address: searchResults[0].address_name || "주소 정보 없음",
+            phone: searchResults[0].phone || "전화번호 정보 없음",
+            placeUrl: searchResults[0].place_url || null,
+          });
+
+          setCurrentMarker(newMarker);
+          setErrorMessage("");
+        }
+      });
+    }
+  };
+
+  const getStringSimilarity = (str1, str2) => {
+    let commonLength = 0;
+    const length1 = str1.length;
+    const length2 = str2.length;
+
+    for (let i = 0; i < Math.min(length1, length2); i++) {
+      if (str1[i] === str2[i]) {
+        commonLength++;
+      }
+    }
+
+    return commonLength / Math.max(length1, length2);
   };
 
   return (
@@ -52,15 +160,25 @@ const MapSearch = ({ map, setMarker }) => {
         type="text"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        placeholder="상호명 검색"
+        placeholder="주소 또는 상호명 검색"
         style={{ padding: "8px", width: "300px", marginBottom: "10px" }}
       />
-
+      <button
+        onClick={handleSearchButtonClick}
+        style={{ padding: "8px", marginLeft: "10px" }}
+      >
+        검색
+      </button>
+      {errorMessage && (
+        <div style={{ color: "red", marginTop: "10px" }}>
+          <p>{errorMessage}</p>
+        </div>
+      )}
       {suggestions.length > 0 && (
         <ul style={{ listStyle: "none", padding: 0, marginTop: "10px" }}>
-          {suggestions.map((place) => (
+          {suggestions.map((item) => (
             <li
-              key={place.id}
+              key={item.id || item.place_name || item.address_name}
               style={{
                 padding: "5px",
                 background: "#f0f0f0",
@@ -68,45 +186,12 @@ const MapSearch = ({ map, setMarker }) => {
                 borderRadius: "4px",
                 marginBottom: "5px",
               }}
-              onClick={() => handleSuggestionClick(place)}
+              onClick={() => handleSuggestionClick(item)}
             >
-              {place.place_name}
+              {item.place_name || item.address_name}
             </li>
           ))}
         </ul>
-      )}
-
-      {placeInfo && (
-        <div
-          style={{
-            marginTop: "20px",
-            padding: "20px",
-            border: "1px solid #ccc",
-            borderRadius: "8px",
-            width: "300px",
-            backgroundColor: "#f9f9f9",
-          }}
-        >
-          <h3>장소 정보</h3>
-          <p>
-            <strong>장소 이름:</strong> {placeInfo.name}
-          </p>
-          <p>
-            <strong>주소:</strong> {placeInfo.address}
-          </p>
-          <p>
-            <strong>전화번호:</strong> {placeInfo.phone}
-          </p>
-          <p>
-            <a
-              href={placeInfo.placeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              더 보기
-            </a>
-          </p>
-        </div>
       )}
     </div>
   );

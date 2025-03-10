@@ -1,15 +1,17 @@
 import React, { useRef, useState, useEffect } from "react";
 import MapCategory from "./MapCategory";
 import MapSearch from "./MapSearch";
-import AddressSearch from "./AddressSearch";
+import PlaceInfo from "./PlaceInfo";
 import "./Map.css";
 
 const Map = ({ selectedRegion }) => {
   const mapContainer = useRef(null);
   const [map, setMap] = useState(null);
   const [marker, setMarker] = useState(null);
+  const [placeInfo, setPlaceInfo] = useState(null);
   const [searchResults, setSearchResults] = useState(null);
   const [address, setAddress] = useState("");
+  const [isCategoryActive, setIsCategoryActive] = useState(false);
 
   const initialLevel = 5;
 
@@ -40,6 +42,32 @@ const Map = ({ selectedRegion }) => {
     }
   }, [selectedRegion, map]);
 
+  const handleSearchResults = (results) => {
+    setSearchResults(results);
+    const position = new window.kakao.maps.LatLng(results.lat, results.lng);
+
+    if (marker) {
+      marker.setMap(null);
+    }
+
+    const newMarker = new window.kakao.maps.Marker({
+      position: position,
+      map: map,
+    });
+    newMarker.setMap(map);
+    map.panTo(position);
+
+    setMarker(newMarker);
+  };
+
+  const handleAddressChange = (newAddress) => {
+    setAddress(newAddress);
+  };
+
+  const handleCategoryChange = (category) => {
+    setIsCategoryActive(category !== null);
+  };
+
   const resetMapPosition = () => {
     if (!map) return;
 
@@ -58,21 +86,19 @@ const Map = ({ selectedRegion }) => {
 
   return (
     <div className="map-container">
-      <MapCategory map={map} />
-      <MapSearch map={map} setMarker={setMarker} />
-      <AddressSearch
+      <MapCategory map={map} onCategoryChange={handleCategoryChange} />
+
+      <MapSearch
         map={map}
         setMarker={setMarker}
-        searchResults={searchResults}
-        setSearchResults={setSearchResults}
-        address={address}
-        setAddress={setAddress}
+        handleSearchResults={handleSearchResults}
+        handleAddressChange={handleAddressChange}
+        setPlaceInfo={setPlaceInfo}
       />
-
+      {placeInfo && <PlaceInfo placeInfo={placeInfo} />}
       <button onClick={resetMapPosition} className="reset-button">
         ⟳
       </button>
-
       <div ref={mapContainer} className="map"></div>
     </div>
   );
