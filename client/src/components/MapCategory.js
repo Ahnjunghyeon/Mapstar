@@ -5,6 +5,7 @@ const MapCategory = ({ map }) => {
   const [categoryMarkers, setCategoryMarkers] = useState({});
   const [showMore, setShowMore] = useState(false);
 
+  // 카카오톡 카테고리별 코드 ㅁ!
   const categoryCodes = {
     지하철역: "SW8",
     주차장: "PK6",
@@ -23,6 +24,26 @@ const MapCategory = ({ map }) => {
     문화시설: "CT1",
     관광명소: "AT4",
     숙박: "AD5",
+  };
+
+  const categoryIcons = {
+    지하철역: "/orangepin.png",
+    주차장: "/blackpin.png",
+    대형마트: "/orange.png",
+    편의점: "/orangepin.png",
+    음식점: "/redpin1.png",
+    병원: "/pinkpin.png",
+    약국: "/pinkpin.png",
+    카페: "/greenpin.png",
+    학교: "/blueyellowstarpin.png",
+    학원: "/blueyellowstarpin.png",
+    "주유소, 충전소": "/blackpin.png",
+    "어린이집, 유치원": "/blueyellowstarpin.png",
+    은행: "/bluepin.png",
+    공공기관: "/bluepin.png",
+    문화시설: "/bluepin.png",
+    관광명소: "/bluepin.png",
+    숙박: "/bluepin.png",
   };
 
   const toggleCategory = (category) => {
@@ -44,9 +65,17 @@ const MapCategory = ({ map }) => {
           if (status === window.kakao.maps.services.Status.OK) {
             const newMarkers = data.map((place) => {
               const position = new window.kakao.maps.LatLng(place.y, place.x);
+
+              const markerImage = new window.kakao.maps.MarkerImage(
+                categoryIcons[category] || "/icons/default.png",
+                new window.kakao.maps.Size(40, 40),
+                { offset: new window.kakao.maps.Point(20, 40) }
+              );
+
               const marker = new window.kakao.maps.Marker({
                 position,
                 map,
+                image: markerImage,
               });
 
               return marker;

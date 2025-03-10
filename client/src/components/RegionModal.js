@@ -1,4 +1,5 @@
 import React from "react";
+import "./RegionModal.css";
 
 const RegionModal = ({ setSelectedRegion, closeModal }) => {
   const regions = [
@@ -19,50 +20,20 @@ const RegionModal = ({ setSelectedRegion, closeModal }) => {
     setSelectedRegion(region);
     closeModal();
   };
-  const SelectModalClose = () => {
-    closeModal();
-  };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: "0",
-        left: "0",
-        width: "100%",
-        height: "100%",
-        backgroundColor: "rgba(0,0,0,0.5)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 1000,
-      }}
-    >
-      <div
-        style={{
-          backgroundColor: "white",
-          padding: "20px",
-          borderRadius: "8px",
-          width: "300px",
-          textAlign: "center",
-        }}
-      >
-        <h2>지역 선택</h2>
-        <button onClick={() => SelectModalClose()}> 닫기</button>
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+    <div className="modal-background">
+      <div className="modal-content">
+        <h2 className="modal-title">지역 선택</h2>
+        <button className="close-btn" onClick={closeModal}>
+          닫기
+        </button>
+        <div className="region-buttons-container">
           {regions.map((region) => (
             <button
               key={region.name}
               onClick={() => handleSelectRegion(region)}
-              style={{
-                padding: "10px",
-                backgroundColor: "#007BFF",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "16px",
-              }}
+              className="region-btn"
             >
               {region.name}
             </button>

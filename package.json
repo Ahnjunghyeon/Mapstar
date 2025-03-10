@@ -15,6 +15,15 @@
     "concurrently": "^9.1.2"
   },
   "dependencies": {
-    "react-kakao-maps-sdk": "^1.1.27"
+    "axios": "^1.8.2",
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mysql2": "^3.13.0",
+    "react-kakao-maps-sdk": "^1.1.27",
+    "react-modal": "^3.16.3",
+    "react-router-dom": "^7.3.0"
   }
 }
