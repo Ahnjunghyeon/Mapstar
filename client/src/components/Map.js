@@ -1,14 +1,16 @@
 import React, { useRef, useState, useEffect } from "react";
 import MapCategory from "./MapCategory";
 import MapSearch from "./MapSearch";
+import SearchResults from "./SearchResults";
+import SelectedResult from "./SelectedResult";
 import "./Map.css";
 
-const Map = ({ selectedRegion, user }) => {
+const Map = ({ selectedRegion, user, isLoggedIn }) => {
   const mapContainer = useRef(null);
   const [map, setMap] = useState(null);
   const [marker, setMarker] = useState(null);
-  const [searchResults, setSearchResults] = useState(null);
-  const [address, setAddress] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [isCategoryActive, setIsCategoryActive] = useState(false);
 
   const initialLevel = 5;
@@ -42,7 +44,12 @@ const Map = ({ selectedRegion, user }) => {
 
   const handleSearchResults = (results) => {
     setSearchResults(results);
-    const position = new window.kakao.maps.LatLng(results.lat, results.lng);
+  };
+
+  const handleSelectItem = (item) => {
+    setSelectedItem(item);
+
+    const position = new window.kakao.maps.LatLng(item.y, item.x);
 
     if (marker) {
       marker.setMap(null);
@@ -56,10 +63,8 @@ const Map = ({ selectedRegion, user }) => {
     map.panTo(position);
 
     setMarker(newMarker);
-  };
 
-  const handleAddressChange = (newAddress) => {
-    setAddress(newAddress);
+    setSearchResults([]);
   };
 
   const handleCategoryChange = (category) => {
@@ -78,21 +83,27 @@ const Map = ({ selectedRegion, user }) => {
       setMarker(null);
     }
 
-    setSearchResults(null);
-    setAddress("");
+    setSearchResults([]);
+    setSelectedItem(null);
+  };
+
+  const closeSelectedResult = () => {
+    setSelectedItem(null);
   };
 
   return (
     <div className="map-container">
       <MapCategory map={map} onCategoryChange={handleCategoryChange} />
 
-      <MapSearch
-        map={map}
-        setMarker={setMarker}
-        handleSearchResults={handleSearchResults}
-        handleAddressChange={handleAddressChange}
-      />
+      <MapSearch map={map} handleSearchResults={handleSearchResults} />
 
+      <SearchResults results={searchResults} onSelect={handleSelectItem} />
+
+      <SelectedResult
+        selectedItem={selectedItem}
+        isLoggedIn={isLoggedIn}
+        closeSelectedResult={closeSelectedResult}
+      />
       <button onClick={resetMapPosition} className="reset-button">
         ⟳
       </button>

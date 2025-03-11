@@ -5,7 +5,7 @@ const MapCategory = ({ map }) => {
   const [categoryMarkers, setCategoryMarkers] = useState({});
   const [showMore, setShowMore] = useState(false);
 
-  // 카카오톡 카테고리별 코드 ㅁ!
+  // 카카오톡 카테고리별 코드
   const categoryCodes = {
     지하철역: "SW8",
     주차장: "PK6",
@@ -47,14 +47,11 @@ const MapCategory = ({ map }) => {
   };
 
   const toggleCategory = (category) => {
-    console.log(`"${category}" 버튼 클릭됨`);
-
     if (!map) return;
 
     const ps = new window.kakao.maps.services.Places();
 
     if (categoryMarkers[category]) {
-      console.log(`"${category}" 마커 제거`);
       categoryMarkers[category].forEach((marker) => marker.setMap(null));
       setCategoryMarkers((prev) => {
         const newMarkers = { ...prev };
@@ -62,13 +59,10 @@ const MapCategory = ({ map }) => {
         return newMarkers;
       });
     } else {
-      console.log(`"${category}" 마커 검색 시작`);
       ps.categorySearch(
         categoryCodes[category],
         (data, status) => {
           if (status === window.kakao.maps.services.Status.OK) {
-            console.log(`"${category}" 검색 성공`, data);
-
             const newMarkers = data.map((place) => {
               const position = new window.kakao.maps.LatLng(place.y, place.x);
               const markerImage = new window.kakao.maps.MarkerImage(
@@ -88,11 +82,6 @@ const MapCategory = ({ map }) => {
               ...prev,
               [category]: newMarkers,
             }));
-          } else if (status === window.kakao.maps.services.Status.ZERO_RESULT) {
-            console.warn(`"${category}" 검색 결과 없음`);
-            alert(`근처에 "${category}"이(가) 없습니다.`);
-          } else {
-            console.error(`"${category}" 검색 실패, status: ${status}`);
           }
         },
         {
@@ -103,35 +92,21 @@ const MapCategory = ({ map }) => {
     }
   };
 
+  const categories = Object.keys(categoryCodes);
+
   return (
-    <div className="map-category-container">
-      {Object.keys(categoryCodes)
-        .slice(0, 7)
-        .map((category) => (
-          <button
-            key={category}
-            onClick={() => toggleCategory(category)}
-            className={`category-button ${
-              categoryMarkers[category] ? "active" : ""
-            }`}
-          >
-            {category}
-          </button>
-        ))}
-      {showMore &&
-        Object.keys(categoryCodes)
-          .slice(7)
-          .map((category) => (
-            <button
-              key={category}
-              onClick={() => toggleCategory(category)}
-              className={`category-button ${
-                categoryMarkers[category] ? "active" : ""
-              }`}
-            >
-              {category}
-            </button>
-          ))}
+    <div className={`map-category-container ${showMore ? "show-more" : ""}`}>
+      {categories.slice(0, showMore ? categories.length : 5).map((category) => (
+        <button
+          key={category}
+          onClick={() => toggleCategory(category)}
+          className={`category-button ${
+            categoryMarkers[category] ? "active" : ""
+          }`}
+        >
+          {category}
+        </button>
+      ))}
       <button
         onClick={() => setShowMore(!showMore)}
         className="category-button more-button"

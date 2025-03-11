@@ -5,7 +5,7 @@ import RegionModal from "./components/RegionModal";
 import LoginModal from "./pages/LoginModal";
 import RegisterModal from "./pages/RegisterModal";
 
-function App() {
+const App = () => {
   const [selectedRegion, setSelectedRegion] = useState(null);
   const [isRegionModalOpen, setIsRegionModalOpen] = useState(true);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -83,6 +83,6 @@ function App() {
       />
     </div>
   );
-}
+};
 
 export default App;

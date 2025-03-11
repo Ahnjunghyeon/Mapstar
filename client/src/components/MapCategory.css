@@ -1,47 +1,73 @@
 .map-category-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  justify-content: space-between;
-  margin-top: 10px;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 90%;
+  margin: 0 auto;
+  transition: all 0.3s ease-in-out;
 }
 
 .category-button {
-  padding: 8px 12px;
-  margin: 5px;
+  background: #3498db;
+  color: white;
   border: none;
-  border-radius: 20px;
-  font-size: 12px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
   justify-content: center;
-  background-color: #f0f0f0;
-  color: #333;
-  font-weight: bold;
+  align-items: center;
+  width: 120px;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  flex: 1 1 15%;
 }
 
 .category-button:hover {
-  background-color: #ddd;
-  transform: translateY(-2px);
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .category-button.active {
-  background-color: #4caf50;
-  color: white;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  background: #e74c3c;
+  color: #fff;
+  font-weight: bold;
 }
 
 .more-button {
-  background-color: #cccccc;
-  padding: 8px 12px;
+  background: #2c3e50;
+  font-weight: bold;
+  padding: 10px 15px;
 }
 
 .more-button:hover {
-  background-color: #bbbbbb;
-  transform: translateY(-2px);
+  background: #34495e;
+}
+
+.map-category-container.show-more {
+  max-height: 800px;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .map-category-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .category-button {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .more-button {
+    width: 100%;
+  }
 }
