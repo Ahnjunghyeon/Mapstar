@@ -47,11 +47,14 @@ const MapCategory = ({ map }) => {
   };
 
   const toggleCategory = (category) => {
+    console.log(`"${category}" 버튼 클릭됨`);
+
     if (!map) return;
 
     const ps = new window.kakao.maps.services.Places();
 
     if (categoryMarkers[category]) {
+      console.log(`"${category}" 마커 제거`);
       categoryMarkers[category].forEach((marker) => marker.setMap(null));
       setCategoryMarkers((prev) => {
         const newMarkers = { ...prev };
@@ -59,25 +62,25 @@ const MapCategory = ({ map }) => {
         return newMarkers;
       });
     } else {
+      console.log(`"${category}" 마커 검색 시작`);
       ps.categorySearch(
         categoryCodes[category],
         (data, status) => {
           if (status === window.kakao.maps.services.Status.OK) {
+            console.log(`"${category}" 검색 성공`, data);
+
             const newMarkers = data.map((place) => {
               const position = new window.kakao.maps.LatLng(place.y, place.x);
-
               const markerImage = new window.kakao.maps.MarkerImage(
                 categoryIcons[category] || "/icons/default.png",
                 new window.kakao.maps.Size(40, 40),
                 { offset: new window.kakao.maps.Point(20, 40) }
               );
-
               const marker = new window.kakao.maps.Marker({
                 position,
                 map,
                 image: markerImage,
               });
-
               return marker;
             });
 
@@ -85,6 +88,11 @@ const MapCategory = ({ map }) => {
               ...prev,
               [category]: newMarkers,
             }));
+          } else if (status === window.kakao.maps.services.Status.ZERO_RESULT) {
+            console.warn(`"${category}" 검색 결과 없음`);
+            alert(`근처에 "${category}"이(가) 없습니다.`);
+          } else {
+            console.error(`"${category}" 검색 실패, status: ${status}`);
           }
         },
         {

@@ -1,40 +1,62 @@
 import React, { useState, useEffect } from "react";
+import SearchResults from "./SearchResults";
+import axios from "axios";
 
-const MapSearch = ({
-  map,
-  setMarker,
-  handleSearchResults,
-  handleAddressChange,
-}) => {
+const MapSearch = ({ map, userId }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
+  const [recentSearches, setRecentSearches] = useState([]);
+  const [showRecent, setShowRecent] = useState(false);
   const [currentMarker, setCurrentMarker] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    if (searchTerm) {
-      const geocoder = new window.kakao.maps.services.Geocoder();
-      const ps = new window.kakao.maps.services.Places();
-
-      geocoder.addressSearch(searchTerm, (result, status) => {
-        if (status === window.kakao.maps.services.Status.OK) {
-          setSuggestions(result);
-        }
-      });
-
-      ps.keywordSearch(searchTerm, (data, status) => {
-        if (status === window.kakao.maps.services.Status.OK) {
-          setSuggestions(data);
-        }
-      });
-    } else {
-      setSuggestions([]);
+    if (userId) {
+      fetchRecentSearches();
     }
-  }, [searchTerm]);
+  }, [userId]);
 
-  const handleSuggestionClick = (item) => {
+  const fetchRecentSearches = async () => {
+    try {
+      const response = await axios.get(
+        `/api/get-recent-searches?userId=${userId}`
+      );
+      setRecentSearches(response.data.map((item) => item.search_term));
+    } catch (error) {
+      console.error("Failed to fetch recent searches", error);
+    }
+  };
+
+  const handleSearch = async () => {
+    if (!searchTerm) return;
+
+    if (userId) {
+      await axios.post("/api/save-search", { userId, searchTerm });
+      fetchRecentSearches(); // 검색어 저장 후 목록 갱신
+    }
+
+    const geocoder = new window.kakao.maps.services.Geocoder();
+    const ps = new window.kakao.maps.services.Places();
+
+    geocoder.addressSearch(searchTerm, (result, status) => {
+      if (status === window.kakao.maps.services.Status.OK) {
+        setSuggestions(result);
+      }
+    });
+
+    ps.keywordSearch(searchTerm, (data, status) => {
+      if (status === window.kakao.maps.services.Status.OK) {
+        setSuggestions(data);
+      }
+    });
+
+    setShowRecent(false);
+  };
+
+  const handleSelectResult = (item) => {
     setSearchTerm(item.place_name || item.address_name);
     setSuggestions([]);
+    setShowRecent(false);
 
     const position = new window.kakao.maps.LatLng(item.y, item.x);
 
@@ -47,137 +69,72 @@ const MapSearch = ({
       map,
     });
     newMarker.setMap(map);
-
     map.panTo(position);
-
     setCurrentMarker(newMarker);
-    setSearchTerm("");
-  };
-
-  const handleSearchButtonClick = () => {
-    if (searchTerm) {
-      const geocoder = new window.kakao.maps.services.Geocoder();
-      const ps = new window.kakao.maps.services.Places();
-
-      let searchResults = [];
-
-      geocoder.addressSearch(searchTerm, (result, status) => {
-        if (status === window.kakao.maps.services.Status.OK) {
-          searchResults = searchResults.concat(result);
-        }
-      });
-
-      ps.keywordSearch(searchTerm, (data, status) => {
-        if (status === window.kakao.maps.services.Status.OK) {
-          searchResults = searchResults.concat(data);
-        }
-
-        if (searchResults.length === 0) {
-          setErrorMessage("해당하는 곳이 없습니다.");
-        } else {
-          searchResults = searchResults.sort((a, b) => {
-            const aContainsSearchTerm = (
-              a.place_name || a.address_name
-            ).includes(searchTerm);
-            const bContainsSearchTerm = (
-              b.place_name || b.address_name
-            ).includes(searchTerm);
-
-            if (aContainsSearchTerm && !bContainsSearchTerm) {
-              return -1;
-            } else if (!aContainsSearchTerm && bContainsSearchTerm) {
-              return 1;
-            }
-
-            const aSimilarity = getStringSimilarity(
-              searchTerm,
-              a.place_name || a.address_name
-            );
-            const bSimilarity = getStringSimilarity(
-              searchTerm,
-              b.place_name || b.address_name
-            );
-            return bSimilarity - aSimilarity;
-          });
-
-          setSuggestions(searchResults);
-
-          const position = new window.kakao.maps.LatLng(
-            searchResults[0].y,
-            searchResults[0].x
-          );
-
-          if (currentMarker) {
-            currentMarker.setMap(null);
-          }
-
-          const newMarker = new window.kakao.maps.Marker({
-            position,
-            map,
-          });
-          newMarker.setMap(map);
-          map.panTo(position);
-
-          setCurrentMarker(newMarker);
-          setErrorMessage("");
-        }
-      });
-    }
-  };
-
-  const getStringSimilarity = (str1, str2) => {
-    let commonLength = 0;
-    const length1 = str1.length;
-    const length2 = str2.length;
-
-    for (let i = 0; i < Math.min(length1, length2); i++) {
-      if (str1[i] === str2[i]) {
-        commonLength++;
-      }
-    }
-
-    return commonLength / Math.max(length1, length2);
   };
 
   return (
-    <div style={{ marginTop: "20px" }}>
+    <div style={{ marginTop: "20px", position: "relative" }}>
       <input
         type="text"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
+        onFocus={() => setShowRecent(true)}
+        onMouseEnter={() => setShowRecent(true)}
+        onBlur={() => setTimeout(() => setShowRecent(false), 200)}
         placeholder="주소 또는 상호명 검색"
         style={{ padding: "8px", width: "300px", marginBottom: "10px" }}
       />
       <button
-        onClick={handleSearchButtonClick}
+        onClick={handleSearch}
         style={{ padding: "8px", marginLeft: "10px" }}
       >
         검색
       </button>
+
+      {showRecent && recentSearches.length > 0 && (
+        <div
+          style={{
+            position: "absolute",
+            top: "100%",
+            left: "0",
+            width: "300px",
+            maxHeight: "200px",
+            overflowY: recentSearches.length > 8 ? "scroll" : "visible",
+            background: "#fff",
+            border: "1px solid #ccc",
+            borderRadius: "5px",
+            zIndex: 10,
+          }}
+        >
+          <ul style={{ listStyle: "none", padding: "10px", margin: 0 }}>
+            {recentSearches.map((term, index) => (
+              <li
+                key={index}
+                style={{
+                  padding: "5px",
+                  cursor: "pointer",
+                  borderBottom: "1px solid #ddd",
+                }}
+                onClick={() => {
+                  setSearchTerm(term);
+                  handleSearch();
+                }}
+              >
+                {term}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {errorMessage && (
         <div style={{ color: "red", marginTop: "10px" }}>
           <p>{errorMessage}</p>
         </div>
       )}
-      {suggestions.length > 0 && (
-        <ul style={{ listStyle: "none", padding: 0, marginTop: "10px" }}>
-          {suggestions.map((item) => (
-            <li
-              key={item.id || item.place_name || item.address_name}
-              style={{
-                padding: "5px",
-                background: "#f0f0f0",
-                cursor: "pointer",
-                borderRadius: "4px",
-                marginBottom: "5px",
-              }}
-              onClick={() => handleSuggestionClick(item)}
-            >
-              {item.place_name || item.address_name}
-            </li>
-          ))}
-        </ul>
-      )}
+
+      <SearchResults results={suggestions} onSelect={handleSelectResult} />
     </div>
   );
 };

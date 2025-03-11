@@ -77,44 +77,45 @@ app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
 
-app.post("/api/save-marker", (req, res) => {
-  const { userId, lat, lng, name, address } = req.body;
+app.post("/api/save-search", (req, res) => {
+  const { userId, searchTerm } = req.body;
+  if (!userId || !searchTerm) {
+    return res.status(400).json({ error: "Invalid request" });
+  }
 
-  const query =
-    "INSERT INTO markers (user_id, lat, lng, name, address) VALUES (?, ?, ?, ?, ?)";
-  connection.query(query, [userId, lat, lng, name, address], (err, results) => {
+  const query = `
+    INSERT INTO search_history (user_id, search_term) 
+    VALUES (?, ?) 
+    ON DUPLICATE KEY UPDATE search_term = VALUES(search_term), updated_at = NOW()
+  `;
+
+  connection.query(query, [userId, searchTerm], (err, results) => {
     if (err) {
       console.error(err);
       return res.status(500).json({ error: "Database error" });
     }
-    res.status(200).json({ message: "Marker saved successfully" });
+    res.status(200).json({ message: "Search term saved successfully" });
   });
 });
 
-app.get("/api/get-saved-markers", (req, res) => {
-  const userId = req.query.userId; // 로그인한 유저 ID
+app.get("/api/get-recent-searches", (req, res) => {
+  const userId = req.query.userId;
+  if (!userId) {
+    return res.status(400).json({ error: "User ID required" });
+  }
 
-  const query = "SELECT * FROM markers WHERE user_id = ?";
+  const query = `
+    SELECT search_term FROM search_history 
+    WHERE user_id = ? 
+    ORDER BY updated_at DESC 
+    LIMIT 8
+  `;
+
   connection.query(query, [userId], (err, results) => {
     if (err) {
       console.error(err);
       return res.status(500).json({ error: "Database error" });
     }
     res.status(200).json(results);
-  });
-});
-
-// 마커관련
-app.post("/api/save-marker", (req, res) => {
-  const { userId, lat, lng, name, address } = req.body;
-
-  const query =
-    "INSERT INTO markers (user_id, lat, lng, name, address) VALUES (?, ?, ?, ?, ?)";
-  connection.query(query, [userId, lat, lng, name, address], (err, results) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: "Database error" });
-    }
-    res.status(200).json({ message: "Marker saved successfully" });
   });
 });

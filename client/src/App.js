@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import "./App.css";
+import React, { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Map from "./components/Map";
 import RegionModal from "./components/RegionModal";
@@ -13,6 +12,14 @@ function App() {
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    if (storedUser) {
+      setUser(storedUser);
+      setIsLoggedIn(true);
+    }
+  }, []);
 
   const closeRegionModal = () => {
     setIsRegionModalOpen(false);
@@ -37,11 +44,13 @@ function App() {
   const loginUser = (userData) => {
     setIsLoggedIn(true);
     setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
   };
 
   const logoutUser = () => {
     setIsLoggedIn(false);
     setUser(null);
+    localStorage.removeItem("user");
   };
 
   return (
@@ -67,7 +76,11 @@ function App() {
         />
       )}
 
-      <Map selectedRegion={selectedRegion} />
+      <Map
+        selectedRegion={selectedRegion}
+        user={user}
+        isLoggedIn={isLoggedIn}
+      />
     </div>
   );
 }

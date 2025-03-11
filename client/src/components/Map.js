@@ -1,5 +1,4 @@
 import React, { useRef, useState, useEffect } from "react";
-import axios from "axios"; // axios 추가
 import MapCategory from "./MapCategory";
 import MapSearch from "./MapSearch";
 import "./Map.css";
@@ -46,7 +45,7 @@ const Map = ({ selectedRegion, user }) => {
     const position = new window.kakao.maps.LatLng(results.lat, results.lng);
 
     if (marker) {
-      marker.setMap(null); // 기존 마커 제거
+      marker.setMap(null);
     }
 
     const newMarker = new window.kakao.maps.Marker({
@@ -56,7 +55,7 @@ const Map = ({ selectedRegion, user }) => {
     newMarker.setMap(map);
     map.panTo(position);
 
-    setMarker(newMarker); // 새로운 마커 설정
+    setMarker(newMarker);
   };
 
   const handleAddressChange = (newAddress) => {
