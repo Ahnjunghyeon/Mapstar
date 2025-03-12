@@ -2,10 +2,12 @@
   padding: 10px;
   max-height: 400px;
   overflow-y: auto;
-  background-color: #fff;
+  background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   margin-top: 15px;
+  z-index: 1000;
+  position: absolute;
 }
 
 .search-results {

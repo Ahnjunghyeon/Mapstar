@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./MapSearch.css"; // css 파일 import
+import "./MapSearch.css";
 
 const MapSearch = ({
   map,

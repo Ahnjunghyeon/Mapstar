@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Map from "./components/Map";
-import RegionModal from "./components/RegionModal";
 import LoginModal from "./pages/LoginModal";
 import RegisterModal from "./pages/RegisterModal";
 
 const App = () => {
-  const [selectedRegion, setSelectedRegion] = useState(null);
-  const [isRegionModalOpen, setIsRegionModalOpen] = useState(true);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -20,10 +17,6 @@ const App = () => {
       setIsLoggedIn(true);
     }
   }, []);
-
-  const closeRegionModal = () => {
-    setIsRegionModalOpen(false);
-  };
 
   const openLoginModal = () => {
     setIsLoginModalOpen(true);
@@ -69,18 +62,7 @@ const App = () => {
 
       {isRegisterModalOpen && <RegisterModal closeModal={closeRegisterModal} />}
 
-      {isRegionModalOpen && (
-        <RegionModal
-          setSelectedRegion={setSelectedRegion}
-          closeModal={closeRegionModal}
-        />
-      )}
-
-      <Map
-        selectedRegion={selectedRegion}
-        user={user}
-        isLoggedIn={isLoggedIn}
-      />
+      <Map user={user} isLoggedIn={isLoggedIn} />
     </div>
   );
 };

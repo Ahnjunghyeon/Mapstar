@@ -12,6 +12,7 @@ const Map = ({ selectedRegion, user, isLoggedIn }) => {
   const [searchResults, setSearchResults] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [isCategoryActive, setIsCategoryActive] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const initialLevel = 5;
 
@@ -63,7 +64,6 @@ const Map = ({ selectedRegion, user, isLoggedIn }) => {
     map.panTo(position);
 
     setMarker(newMarker);
-
     setSearchResults([]);
   };
 
@@ -91,13 +91,27 @@ const Map = ({ selectedRegion, user, isLoggedIn }) => {
     setSelectedItem(null);
   };
 
+  const handleSearchTermChange = (term) => {
+    setSearchTerm(term);
+    if (!term) {
+      setSearchResults([]);
+    }
+  };
+
   return (
     <div className="map-container">
       <MapCategory map={map} onCategoryChange={handleCategoryChange} />
+      <MapSearch
+        map={map}
+        handleSearchResults={handleSearchResults}
+        searchTerm={searchTerm}
+        setSearchTerm={handleSearchTermChange}
+      />
 
-      <MapSearch map={map} handleSearchResults={handleSearchResults} />
-
-      <SearchResults results={searchResults} onSelect={handleSelectItem} />
+      {/* 검색 결과가 있을 때만 보여지게 설정 */}
+      {searchResults.length > 0 && (
+        <SearchResults results={searchResults} onSelect={handleSelectItem} />
+      )}
 
       <SelectedResult
         selectedItem={selectedItem}
@@ -105,8 +119,9 @@ const Map = ({ selectedRegion, user, isLoggedIn }) => {
         closeSelectedResult={closeSelectedResult}
       />
       <button onClick={resetMapPosition} className="reset-button">
-        ⟳
+        <img src="/reset-icon.png" alt="Reset Map" className="reset-icon" />
       </button>
+
       <div ref={mapContainer} className="map"></div>
     </div>
   );

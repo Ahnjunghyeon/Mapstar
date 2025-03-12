@@ -10,21 +10,36 @@
 
 .reset-button {
   position: absolute;
-  bottom: 10px;
+  bottom: 20px;
   left: 10px;
-  width: 40px;
-  height: 40px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  background-color: #007bff;
+  background: none;
+  padding: 0;
+  background-color: #ffffff00;
   color: #fff;
   border: none;
   cursor: pointer;
   z-index: 10;
   font-size: 18px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .reset-button:hover {
-  background-color: #0056b3;
+  background: #f4f4f400;
+}
+
+.reset-button:active {
+  transform: scale(0.95);
+}
+.reset-icon {
+  width: 80%;
+  height: 80%;
+  object-fit: contain; /* 비율 유지하며 버튼 안에 맞춤 */
 }
 
 .marker-action {

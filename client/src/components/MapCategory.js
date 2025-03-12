@@ -5,45 +5,42 @@ const MapCategory = ({ map }) => {
   const [categoryMarkers, setCategoryMarkers] = useState({});
   const [showMore, setShowMore] = useState(false);
 
-  // 카카오톡 카테고리별 코드
+  const primaryCategories = ["지하철역", "편의점", "음식점", "주차장", "병원"];
+  const additionalCategories = [
+    "약국",
+    "카페",
+    "학교",
+    "주유소, 충전소",
+    "공공기관",
+    "대형마트",
+  ];
+
   const categoryCodes = {
     지하철역: "SW8",
-    주차장: "PK6",
-    대형마트: "MT1",
     편의점: "CS2",
     음식점: "FD6",
     병원: "HP8",
+    주차장: "PK6",
     약국: "PM9",
     카페: "CE7",
     학교: "SC4",
-    학원: "AC5",
     "주유소, 충전소": "OL7",
-    "어린이집, 유치원": "PS3",
-    은행: "BK9",
     공공기관: "PO3",
-    문화시설: "CT1",
-    관광명소: "AT4",
-    숙박: "AD5",
+    대형마트: "MT1",
   };
 
   const categoryIcons = {
-    지하철역: "/orangepin.png",
-    주차장: "/blackpin.png",
-    대형마트: "/orange.png",
-    편의점: "/orangepin.png",
-    음식점: "/redpin1.png",
-    병원: "/pinkpin.png",
-    약국: "/pinkpin.png",
-    카페: "/greenpin.png",
-    학교: "/blueyellowstarpin.png",
-    학원: "/blueyellowstarpin.png",
-    "주유소, 충전소": "/blackpin.png",
-    "어린이집, 유치원": "/blueyellowstarpin.png",
-    은행: "/bluepin.png",
-    공공기관: "/bluepin.png",
-    문화시설: "/bluepin.png",
-    관광명소: "/bluepin.png",
-    숙박: "/bluepin.png",
+    지하철역: "/subway.png",
+    편의점: "/Conveniencestore.png",
+    음식점: "/Restaurant.png",
+    병원: "/Hospital.png",
+    주차장: "/Parking.png",
+    약국: "/Drugstore.png",
+    카페: "/Cafe.png",
+    학교: "/School.png",
+    "주유소, 충전소": "/Charge.png",
+    공공기관: "/Public.png",
+    대형마트: "/Shopping.png",
   };
 
   const toggleCategory = (category) => {
@@ -59,44 +56,56 @@ const MapCategory = ({ map }) => {
         return newMarkers;
       });
     } else {
+      const bounds = map.getBounds();
+      const center = map.getCenter();
+
       ps.categorySearch(
         categoryCodes[category],
         (data, status) => {
           if (status === window.kakao.maps.services.Status.OK) {
+            console.log(`${category} 검색 결과 개수:`, data.length);
+
+            // 검색 결과 -> 마커 생성
             const newMarkers = data.map((place) => {
               const position = new window.kakao.maps.LatLng(place.y, place.x);
+
               const markerImage = new window.kakao.maps.MarkerImage(
-                categoryIcons[category] || "/icons/default.png",
+                categoryIcons[category] || "/purplecorn.png",
                 new window.kakao.maps.Size(40, 40),
                 { offset: new window.kakao.maps.Point(20, 40) }
               );
+
               const marker = new window.kakao.maps.Marker({
                 position,
                 map,
                 image: markerImage,
               });
+
               return marker;
             });
 
+            // 생성된 마커들을 categoryMarkers 상태에 저장
             setCategoryMarkers((prev) => ({
               ...prev,
               [category]: newMarkers,
             }));
+          } else {
+            console.warn(`${category} 검색 결과 없음`);
           }
         },
         {
-          location: map.getCenter(),
-          radius: 10000,
+          location: center,
+          bounds: bounds,
+          radius: 20000, // 검색 범위 (20km)
+          useStrictBounds: true,
         }
       );
     }
   };
 
-  const categories = Object.keys(categoryCodes);
-
   return (
     <div className={`map-category-container ${showMore ? "show-more" : ""}`}>
-      {categories.slice(0, showMore ? categories.length : 5).map((category) => (
+      {primaryCategories.map((category) => (
         <button
           key={category}
           onClick={() => toggleCategory(category)}
@@ -107,6 +116,20 @@ const MapCategory = ({ map }) => {
           {category}
         </button>
       ))}
+
+      {showMore &&
+        additionalCategories.map((category) => (
+          <button
+            key={category}
+            onClick={() => toggleCategory(category)}
+            className={`category-button ${
+              categoryMarkers[category] ? "active" : ""
+            }`}
+          >
+            {category}
+          </button>
+        ))}
+
       <button
         onClick={() => setShowMore(!showMore)}
         className="category-button more-button"

@@ -15,6 +15,23 @@ const SelectedResult = ({ selectedItem, closeSelectedResult }) => {
         <p>
           <strong>주소:</strong> {selectedItem.address_name}
         </p>
+        {selectedItem.phone && (
+          <p>
+            <strong>전화번호:</strong> {selectedItem.phone}
+          </p>
+        )}
+        {selectedItem.place_url && (
+          <p>
+            <strong>상세 정보:</strong>{" "}
+            <a
+              href={selectedItem.place_url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              카카오맵에서 보기
+            </a>
+          </p>
+        )}
         <button onClick={closeSelectedResult} className="close-button">
           닫기
         </button>

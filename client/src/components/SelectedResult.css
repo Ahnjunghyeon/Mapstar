@@ -1,28 +1,13 @@
 .selected-result-container {
-  position: fixed;
-  top: 50%;
-  left: 50%;
+  position: absolute; /* 다른 요소에 영향을 주지 않도록 설정 */
+  top: 35%;
+  left: 80%;
   transform: translate(-50%, -50%);
-  width: 90%;
-  max-width: 500px;
-  background-color: #ffffff;
-  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+  background: white;
   padding: 20px;
-  z-index: 999;
-  transition: all 0.3s ease-in-out;
-  animation: slideIn 0.5s ease-out;
-}
-
-@keyframes slideIn {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -60%);
-  }
-  100% {
-    opacity: 1;
-    transform: translate(-50%, -50%);
-  }
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000; /* 지도 위에 출력되도록 설정 */
 }
 
 .selected-result-card {
@@ -65,8 +50,8 @@
 
 @media (max-width: 600px) {
   .selected-result-container {
-    width: 95%;
-    padding: 15px;
+    width: 90%;
+    top: 55%;
   }
 
   .selected-result-title {

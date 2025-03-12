@@ -10,7 +10,7 @@ const SearchResults = ({ results, onSelect }) => {
             <li
               key={item.id || item.place_name || item.address_name}
               onClick={() => {
-                onSelect(item);
+                onSelect(item); // 클릭 시 부모 컴포넌트의 상태를 변경하도록 호출
               }}
             >
               <strong>{item.place_name || item.address_name}</strong>
