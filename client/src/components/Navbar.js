@@ -15,7 +15,9 @@ const Navbar = ({
         <div className="navbar-links">
           {isLoggedIn ? (
             <>
-              <span className="navbar-link">Hello, {user.username}</span>
+              <span className="navbar-link">
+                Hello, {user.username} ({user.id})
+              </span>
               <button onClick={logoutUser} className="navbar-link">
                 로그아웃
               </button>

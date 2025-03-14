@@ -1,18 +1,19 @@
 import React, { useRef, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import MapCategory from "./MapCategory";
 import MapSearch from "./MapSearch";
-import SearchResults from "./SearchResults";
+import SearchHistory from "./SearchHistory";
 import SelectedResult from "./SelectedResult";
+import { debounce } from "lodash";
 import "./Map.css";
 
-const Map = ({ selectedRegion, user, isLoggedIn }) => {
+const Map = ({ selectedRegion, user, isLoggedIn, userId }) => {
   const mapContainer = useRef(null);
   const [map, setMap] = useState(null);
   const [marker, setMarker] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [isCategoryActive, setIsCategoryActive] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
 
   const initialLevel = 5;
 
@@ -23,15 +24,19 @@ const Map = ({ selectedRegion, user, isLoggedIn }) => {
     script.src =
       "https://dapi.kakao.com/v2/maps/sdk.js?appkey=dbcb1d68fd3c35a30fe94a2c6307b7ef&libraries=services,clusterer,drawing,geometry";
     script.onload = () => {
-      const container = mapContainer.current;
-      const options = {
-        center: initialPosition,
-        level: initialLevel,
-      };
-
-      const mapInstance = new window.kakao.maps.Map(container, options);
-      setMap(mapInstance);
+      if (window.kakao) {
+        const container = mapContainer.current;
+        const options = { center: initialPosition, level: initialLevel };
+        const mapInstance = new window.kakao.maps.Map(container, options);
+        setMap(mapInstance);
+      } else {
+        console.error("카카오 맵 API 로드 실패");
+      }
     };
+    script.onerror = () => {
+      console.error("카카오 맵 API 로드 중 오류 발생");
+    };
+
     document.head.appendChild(script);
   }, []);
 
@@ -43,32 +48,74 @@ const Map = ({ selectedRegion, user, isLoggedIn }) => {
     }
   }, [selectedRegion, map]);
 
-  const handleSearchResults = (results) => {
-    setSearchResults(results);
+  const handleSearchResults = (searchData) => {
+    setSearchResults(searchData.results);
+  };
+
+  const debouncedSearchResults = debounce(async (term) => {
+    if (!term) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/api/search?term=${term}`
+      );
+      handleSearchResults({
+        results: response.data.results,
+        searchTerm: term,
+        userId,
+        time: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("Search request failed:", error);
+    }
+  }, 300);
+
+  const handleSearchTermChange = (term) => {
+    debouncedSearchResults(term);
   };
 
   const handleSelectItem = (item) => {
     setSelectedItem(item);
-
     const position = new window.kakao.maps.LatLng(item.y, item.x);
 
     if (marker) {
       marker.setMap(null);
     }
 
-    const newMarker = new window.kakao.maps.Marker({
-      position: position,
-      map: map,
-    });
+    const newMarker = new window.kakao.maps.Marker({ position, map });
     newMarker.setMap(map);
     map.panTo(position);
-
     setMarker(newMarker);
     setSearchResults([]);
   };
 
-  const handleCategoryChange = (category) => {
-    setIsCategoryActive(category !== null);
+  const saveToHistory = async (place) => {
+    if (!isLoggedIn) return;
+
+    const history =
+      JSON.parse(localStorage.getItem(`searchHistory_${userId}`)) || [];
+    const newHistory = [
+      { ...place, date: new Date().toISOString() },
+      ...history,
+    ];
+
+    localStorage.setItem(
+      `searchHistory_${userId}`,
+      JSON.stringify(newHistory.slice(0, 10))
+    );
+
+    try {
+      await axios.post("http://localhost:5000/api/search-history", {
+        userId,
+        searchTerm: place.place_name || place.address_name,
+        time: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("Failed to save search history:", error);
+    }
   };
 
   const resetMapPosition = () => {
@@ -91,33 +138,23 @@ const Map = ({ selectedRegion, user, isLoggedIn }) => {
     setSelectedItem(null);
   };
 
-  const handleSearchTermChange = (term) => {
-    setSearchTerm(term);
-    if (!term) {
-      setSearchResults([]);
-    }
-  };
-
   return (
     <div className="map-container">
-      <MapCategory map={map} onCategoryChange={handleCategoryChange} />
+      <MapCategory map={map} />
       <MapSearch
         map={map}
         handleSearchResults={handleSearchResults}
-        searchTerm={searchTerm}
-        setSearchTerm={handleSearchTermChange}
+        isLoggedIn={isLoggedIn}
+        user={user}
+        onSelect={handleSelectItem}
       />
-
-      {/* 검색 결과가 있을 때만 보여지게 설정 */}
-      {searchResults.length > 0 && (
-        <SearchResults results={searchResults} onSelect={handleSelectItem} />
-      )}
 
       <SelectedResult
         selectedItem={selectedItem}
         isLoggedIn={isLoggedIn}
         closeSelectedResult={closeSelectedResult}
       />
+
       <button onClick={resetMapPosition} className="reset-button">
         <img src="/reset-icon.png" alt="Reset Map" className="reset-icon" />
       </button>

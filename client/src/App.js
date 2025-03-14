@@ -11,10 +11,17 @@ const App = () => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser) {
-      setUser(storedUser);
-      setIsLoggedIn(true);
+    const storedUser = localStorage.getItem("user");
+
+    if (storedUser && storedUser !== "undefined") {
+      // 'undefined' 문자열 체크
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        setIsLoggedIn(true);
+      } catch (error) {
+        console.error("Failed to parse user data:", error);
+      }
     }
   }, []);
 
@@ -37,7 +44,9 @@ const App = () => {
   const loginUser = (userData) => {
     setIsLoggedIn(true);
     setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
+    if (userData) {
+      localStorage.setItem("user", JSON.stringify(userData));
+    }
   };
 
   const logoutUser = () => {
@@ -55,14 +64,12 @@ const App = () => {
         openLoginModal={openLoginModal}
         openRegisterModal={openRegisterModal}
       />
-
       {isLoginModalOpen && (
         <LoginModal closeModal={closeLoginModal} loginUser={loginUser} />
       )}
-
       {isRegisterModalOpen && <RegisterModal closeModal={closeRegisterModal} />}
 
-      <Map user={user} isLoggedIn={isLoggedIn} />
+      <Map user={user} isLoggedIn={isLoggedIn} userId={user?.id} />
     </div>
   );
 };

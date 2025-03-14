@@ -3,53 +3,84 @@
   justify-content: center;
   align-items: center;
   width: 100%;
-  gap: 10px;
-  margin: 20px 0;
+  gap: 12px;
+  margin: 25px 0;
+  position: relative;
+  padding: 15px;
+  background-color: #f4f7fb;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .search-input {
-  width: 80%;
-  padding: 10px;
-  border: 1px solid #ddd;
+  width: 75%;
+  padding: 12px;
+  border: 1px solid #e0e6ed;
   border-radius: 8px;
   font-size: 16px;
   outline: none;
-  background-color: #f9f9f9;
+  background-color: #ffffff;
   transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
 .search-input:focus {
-  border-color: #3498db;
-  background-color: #fff;
+  border-color: #4b7bec;
+  background-color: #f9fafc;
 }
 
+/* 검색 버튼 */
 .search-button {
   width: 20%;
-  padding: 10px;
-  background-color: #3498db;
+  padding: 12px;
+  background: linear-gradient(135deg, #4b7bec, #34a1eb);
   color: white;
   border: none;
   border-radius: 8px;
   font-size: 16px;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
 .search-button:hover {
-  background-color: #2980b9;
+  background: linear-gradient(135deg, #34a1eb, #4b7bec);
 }
 
-.error-message {
-  color: #e74c3c;
-  font-size: 14px;
-  margin-top: 10px;
-  text-align: center;
+.search-button:active {
+  transform: scale(0.98);
+}
+
+.autocomplete-suggestions {
+  top: 200px;
+  background-color: white;
+  border: 1px solid #ccc;
+  max-height: 200px;
+  overflow-y: auto;
+  position: absolute;
+  width: 100%;
+  z-index: 1000;
+}
+
+.autocomplete-suggestions ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.autocomplete-suggestions li {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.autocomplete-suggestions li:hover {
+  background-color: #f0f0f0;
 }
 
 @media (max-width: 768px) {
   .map-search-container {
     flex-direction: column;
-    padding: 15px;
+    padding: 20px;
   }
 
   .search-input {

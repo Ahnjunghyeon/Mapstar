@@ -5,54 +5,31 @@ const MapCategory = ({ map }) => {
   const [categoryMarkers, setCategoryMarkers] = useState({});
   const [showMore, setShowMore] = useState(false);
 
-  const primaryCategories = ["지하철역", "편의점", "음식점", "주차장", "병원"];
-  const additionalCategories = [
-    "약국",
-    "카페",
-    "학교",
-    "주유소, 충전소",
-    "공공기관",
-    "대형마트",
+  const categories = [
+    { name: "지하철역", code: "SW8", icon: "/subway.png" },
+    { name: "편의점", code: "CS2", icon: "/Conveniencestore.png" },
+    { name: "음식점", code: "FD6", icon: "/Restaurant.png" },
+    { name: "병원", code: "HP8", icon: "/Hospital.png" },
+    { name: "주차장", code: "PK6", icon: "/Parking.png" },
+    { name: "약국", code: "PM9", icon: "/Drugstore1.png" },
+    { name: "카페", code: "CE7", icon: "/Cafe.png" },
+    { name: "학교", code: "SC4", icon: "/School.png" },
+    { name: "주유소, 충전소", code: "OL7", icon: "/Charge.png" },
+    { name: "공공기관", code: "PO3", icon: "/Public.png" },
+    { name: "대형마트", code: "MT1", icon: "/Shopping.png" },
   ];
-
-  const categoryCodes = {
-    지하철역: "SW8",
-    편의점: "CS2",
-    음식점: "FD6",
-    병원: "HP8",
-    주차장: "PK6",
-    약국: "PM9",
-    카페: "CE7",
-    학교: "SC4",
-    "주유소, 충전소": "OL7",
-    공공기관: "PO3",
-    대형마트: "MT1",
-  };
-
-  const categoryIcons = {
-    지하철역: "/subway.png",
-    편의점: "/Conveniencestore.png",
-    음식점: "/Restaurant.png",
-    병원: "/Hospital.png",
-    주차장: "/Parking.png",
-    약국: "/Drugstore.png",
-    카페: "/Cafe.png",
-    학교: "/School.png",
-    "주유소, 충전소": "/Charge.png",
-    공공기관: "/Public.png",
-    대형마트: "/Shopping.png",
-  };
 
   const toggleCategory = (category) => {
     if (!map) return;
 
     const ps = new window.kakao.maps.services.Places();
+    const existingMarkers = categoryMarkers[category.name];
 
-    if (categoryMarkers[category]) {
-      categoryMarkers[category].forEach((marker) => marker.setMap(null));
+    if (existingMarkers) {
+      existingMarkers.forEach((marker) => marker.setMap(null));
       setCategoryMarkers((prev) => {
         const newMarkers = { ...prev };
-        delete newMarkers[category];
+        delete newMarkers[category.name];
         return newMarkers;
       });
     } else {
@@ -60,43 +37,40 @@ const MapCategory = ({ map }) => {
       const center = map.getCenter();
 
       ps.categorySearch(
-        categoryCodes[category],
+        category.code,
         (data, status) => {
           if (status === window.kakao.maps.services.Status.OK) {
-            console.log(`${category} 검색 결과 개수:`, data.length);
-
-            // 검색 결과 -> 마커 생성
-            const newMarkers = data.map((place) => {
-              const position = new window.kakao.maps.LatLng(place.y, place.x);
-
-              const markerImage = new window.kakao.maps.MarkerImage(
-                categoryIcons[category] || "/purplecorn.png",
-                new window.kakao.maps.Size(40, 40),
-                { offset: new window.kakao.maps.Point(20, 40) }
-              );
-
-              const marker = new window.kakao.maps.Marker({
-                position,
-                map,
-                image: markerImage,
+            const newMarkers = data
+              .filter((place) => {
+                const position = new window.kakao.maps.LatLng(place.y, place.x);
+                return bounds.contain(position);
+              })
+              .map((place) => {
+                const position = new window.kakao.maps.LatLng(place.y, place.x);
+                const markerImage = new window.kakao.maps.MarkerImage(
+                  category.icon,
+                  new window.kakao.maps.Size(40, 40),
+                  { offset: new window.kakao.maps.Point(20, 40) }
+                );
+                return new window.kakao.maps.Marker({
+                  position,
+                  map,
+                  image: markerImage,
+                });
               });
 
-              return marker;
-            });
-
-            // 생성된 마커들을 categoryMarkers 상태에 저장
             setCategoryMarkers((prev) => ({
               ...prev,
-              [category]: newMarkers,
+              [category.name]: newMarkers,
             }));
           } else {
-            console.warn(`${category} 검색 결과 없음`);
+            console.warn(`${category.name} 검색 결과 없음`);
           }
         },
         {
           location: center,
           bounds: bounds,
-          radius: 20000, // 검색 범위 (20km)
+          radius: 20000, // 20km 범위
           useStrictBounds: true,
         }
       );
@@ -105,28 +79,28 @@ const MapCategory = ({ map }) => {
 
   return (
     <div className={`map-category-container ${showMore ? "show-more" : ""}`}>
-      {primaryCategories.map((category) => (
+      {categories.slice(0, 5).map((category) => (
         <button
-          key={category}
+          key={category.name}
           onClick={() => toggleCategory(category)}
           className={`category-button ${
-            categoryMarkers[category] ? "active" : ""
+            categoryMarkers[category.name] ? "active" : ""
           }`}
         >
-          {category}
+          {category.name}
         </button>
       ))}
 
       {showMore &&
-        additionalCategories.map((category) => (
+        categories.slice(5).map((category) => (
           <button
-            key={category}
+            key={category.name}
             onClick={() => toggleCategory(category)}
             className={`category-button ${
-              categoryMarkers[category] ? "active" : ""
+              categoryMarkers[category.name] ? "active" : ""
             }`}
           >
-            {category}
+            {category.name}
           </button>
         ))}
 
