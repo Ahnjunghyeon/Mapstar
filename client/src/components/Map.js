@@ -1,11 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import MapCategory from "./MapCategory";
 import MapSearch from "./MapSearch";
-import SearchHistory from "./SearchHistory";
 import SelectedResult from "./SelectedResult";
-import { debounce } from "lodash";
 import "./Map.css";
 
 const Map = ({ selectedRegion, user, isLoggedIn, userId }) => {
@@ -16,6 +12,7 @@ const Map = ({ selectedRegion, user, isLoggedIn, userId }) => {
   const [selectedItem, setSelectedItem] = useState(null);
 
   const initialLevel = 5;
+  const markerImageUrl = "/userpin.png";
 
   useEffect(() => {
     const initialPosition = new window.kakao.maps.LatLng(37.5665, 126.978);
@@ -28,7 +25,24 @@ const Map = ({ selectedRegion, user, isLoggedIn, userId }) => {
         const container = mapContainer.current;
         const options = { center: initialPosition, level: initialLevel };
         const mapInstance = new window.kakao.maps.Map(container, options);
+
+        const markerImage = new window.kakao.maps.MarkerImage(
+          markerImageUrl,
+          new window.kakao.maps.Size(40, 40),
+          {
+            alt: "기본 마커",
+            offset: new window.kakao.maps.Point(20, 40),
+          }
+        );
+
+        const initialMarker = new window.kakao.maps.Marker({
+          position: initialPosition,
+          image: markerImage,
+        });
+
+        initialMarker.setMap(mapInstance);
         setMap(mapInstance);
+        setMarker(initialMarker);
       } else {
         console.error("카카오 맵 API 로드 실패");
       }
@@ -52,31 +66,6 @@ const Map = ({ selectedRegion, user, isLoggedIn, userId }) => {
     setSearchResults(searchData.results);
   };
 
-  const debouncedSearchResults = debounce(async (term) => {
-    if (!term) {
-      setSearchResults([]);
-      return;
-    }
-
-    try {
-      const response = await axios.get(
-        `http://localhost:5000/api/search?term=${term}`
-      );
-      handleSearchResults({
-        results: response.data.results,
-        searchTerm: term,
-        userId,
-        time: new Date().toISOString(),
-      });
-    } catch (error) {
-      console.error("Search request failed:", error);
-    }
-  }, 300);
-
-  const handleSearchTermChange = (term) => {
-    debouncedSearchResults(term);
-  };
-
   const handleSelectItem = (item) => {
     setSelectedItem(item);
     const position = new window.kakao.maps.LatLng(item.y, item.x);
@@ -85,37 +74,23 @@ const Map = ({ selectedRegion, user, isLoggedIn, userId }) => {
       marker.setMap(null);
     }
 
-    const newMarker = new window.kakao.maps.Marker({ position, map });
+    const newMarker = new window.kakao.maps.Marker({
+      position,
+      map,
+      image: new window.kakao.maps.MarkerImage(
+        markerImageUrl,
+        new window.kakao.maps.Size(40, 40),
+        {
+          alt: "선택한 마커",
+          offset: new window.kakao.maps.Point(20, 40),
+        }
+      ),
+    });
+
     newMarker.setMap(map);
     map.panTo(position);
     setMarker(newMarker);
     setSearchResults([]);
-  };
-
-  const saveToHistory = async (place) => {
-    if (!isLoggedIn) return;
-
-    const history =
-      JSON.parse(localStorage.getItem(`searchHistory_${userId}`)) || [];
-    const newHistory = [
-      { ...place, date: new Date().toISOString() },
-      ...history,
-    ];
-
-    localStorage.setItem(
-      `searchHistory_${userId}`,
-      JSON.stringify(newHistory.slice(0, 10))
-    );
-
-    try {
-      await axios.post("http://localhost:5000/api/search-history", {
-        userId,
-        searchTerm: place.place_name || place.address_name,
-        time: new Date().toISOString(),
-      });
-    } catch (error) {
-      console.error("Failed to save search history:", error);
-    }
   };
 
   const resetMapPosition = () => {

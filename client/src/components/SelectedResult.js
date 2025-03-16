@@ -2,7 +2,7 @@ import React from "react";
 import "./SelectedResult.css";
 
 const SelectedResult = ({ selectedItem, closeSelectedResult }) => {
-  if (!selectedItem) return null; // selectedItem이 없으면 아무것도 렌더링하지 않음
+  if (!selectedItem) return null;
 
   return (
     <div className="selected-result-container">

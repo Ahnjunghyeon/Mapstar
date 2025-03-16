@@ -1,5 +1,5 @@
 .selected-result-container {
-  position: absolute; /* 다른 요소에 영향을 주지 않도록 설정 */
+  position: absolute;
   top: 35%;
   left: 80%;
   transform: translate(-50%, -50%);
@@ -7,7 +7,7 @@
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  z-index: 1000; /* 지도 위에 출력되도록 설정 */
+  z-index: 1000;
 }
 
 .selected-result-card {

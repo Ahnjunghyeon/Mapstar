@@ -27,6 +27,7 @@ const LoginModal = ({ closeModal, loginUser }) => {
       // 모달 닫기
       closeModal();
     } catch (error) {
+      console.error("로그인 실패:", error); // 오류 로그 추가
       setError(error.response?.data?.error || "Login failed");
     }
   };

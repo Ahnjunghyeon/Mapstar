@@ -66,21 +66,26 @@ app.post("/api/register", async (req, res) => {
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
 
+  console.log("로그인 요청받음:", email, password);
+
   const query = "SELECT * FROM users WHERE email = ?";
   connection.query(query, [email], async (err, results) => {
     if (err) {
-      console.error(err);
+      console.error("쿼리 오류:", err);
       return res.status(500).json({ error: "데이터베이스 오류" });
     }
 
     if (results.length === 0) {
+      console.log("사용자 없음:", email);
       return res.status(401).json({ error: "잘못된 이메일 또는 비밀번호" });
     }
 
     const user = results[0];
+    console.log("사용자 찾음:", user);
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.log("비밀번호 불일치:", email);
       return res.status(401).json({ error: "잘못된 이메일 또는 비밀번호" });
     }
 
@@ -115,20 +120,67 @@ app.post("/api/search-history", (req, res) => {
 
 app.get("/api/search-history", (req, res) => {
   const userId = req.query.userId;
+  console.log("🔍 받은 userId:", userId);
 
   if (!userId) {
+    console.error("❌ userId가 제공되지 않음");
     return res.status(400).json({ error: "userId가 필요합니다." });
   }
 
   const query =
     "SELECT * FROM search_history WHERE user_id = ? ORDER BY search_time DESC";
+  console.log("📝 실행할 SQL 쿼리:", query, "params:", userId);
+
   connection.query(query, [userId], (err, results) => {
     if (err) {
-      console.error("검색 기록 조회 오류:", err);
-      return res.status(500).json({ error: "데이터베이스 오류" });
+      console.error("⚠️ 검색 기록 조회 오류:", err);
+      return res.status(500).json({ error: "데이터베이스 오류", details: err });
     }
+
+    console.log("✅ 쿼리 결과:", results);
     res.json(results);
   });
+});
+
+const moment = require("moment"); //
+
+app.delete("/api/search-history", (req, res) => {
+  const { userId, searchTerm, searchTime } = req.body;
+
+  if (!userId || !searchTerm || !searchTime) {
+    return res
+      .status(400)
+      .json({ error: "userId, searchTerm, searchTime이 필요합니다." });
+  }
+
+  const formattedSearchTime = moment(searchTime).format("YYYY-MM-DD HH:mm:ss");
+
+  const query =
+    "DELETE FROM search_history WHERE user_id = ? AND search_term = ? AND search_time = ?";
+
+  console.log("📡 실행할 삭제 쿼리:", query, "params:", [
+    userId,
+    searchTerm,
+    formattedSearchTime,
+  ]);
+
+  connection.query(
+    query,
+    [userId, searchTerm, formattedSearchTime],
+    (err, results) => {
+      if (err) {
+        console.error("❌ 삭제 오류:", err);
+        return res.status(500).json({ error: "데이터베이스 오류" });
+      }
+
+      // 삭제된 기록이 없다면
+      if (results.affectedRows === 0) {
+        return res.status(404).json({ error: "삭제할 기록이 없습니다." });
+      }
+
+      res.status(200).json({ message: "검색 기록이 삭제되었습니다." });
+    }
+  );
 });
 
 app.listen(port, () => {
