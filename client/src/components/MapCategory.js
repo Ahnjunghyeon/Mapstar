@@ -4,6 +4,7 @@ import "./MapCategory.css";
 const MapCategory = ({ map }) => {
   const [categoryMarkers, setCategoryMarkers] = useState({});
   const [showMore, setShowMore] = useState(false);
+  const [isOpen, setIsOpen] = useState(false); // 사이드 메뉴 열림 상태
 
   const categories = [
     { name: "지하철역", code: "SW8", icon: "/subway.png" },
@@ -28,87 +29,81 @@ const MapCategory = ({ map }) => {
     if (existingMarkers) {
       existingMarkers.forEach((marker) => marker.setMap(null));
       setCategoryMarkers((prev) => {
-        const newMarkers = { ...prev };
-        delete newMarkers[category.name];
-        return newMarkers;
+        const updatedMarkers = { ...prev };
+        delete updatedMarkers[category.name];
+        return updatedMarkers;
       });
-    } else {
-      const bounds = map.getBounds();
-      const center = map.getCenter();
-
-      ps.categorySearch(
-        category.code,
-        (data, status) => {
-          if (status === window.kakao.maps.services.Status.OK) {
-            const newMarkers = data
-              .filter((place) => {
-                const position = new window.kakao.maps.LatLng(place.y, place.x);
-                return bounds.contain(position);
-              })
-              .map((place) => {
-                const position = new window.kakao.maps.LatLng(place.y, place.x);
-                const markerImage = new window.kakao.maps.MarkerImage(
-                  category.icon,
-                  new window.kakao.maps.Size(40, 40),
-                  { offset: new window.kakao.maps.Point(20, 40) }
-                );
-                return new window.kakao.maps.Marker({
-                  position,
-                  map,
-                  image: markerImage,
-                });
-              });
-
-            setCategoryMarkers((prev) => ({
-              ...prev,
-              [category.name]: newMarkers,
-            }));
-          } else {
-            console.warn(`${category.name} 검색 결과 없음`);
-          }
-        },
-        {
-          location: center,
-          bounds: bounds,
-          radius: 20000, // 20km 범위
-          useStrictBounds: true,
-        }
-      );
+      return;
     }
+
+    ps.categorySearch(
+      category.code,
+      (data, status) => {
+        if (status !== window.kakao.maps.services.Status.OK) {
+          console.warn(`${category.name} 검색 결과 없음`);
+          return;
+        }
+
+        const bounds = map.getBounds();
+        const newMarkers = data
+          .filter((place) =>
+            bounds.contain(new window.kakao.maps.LatLng(place.y, place.x))
+          )
+          .map((place) => {
+            const position = new window.kakao.maps.LatLng(place.y, place.x);
+            return new window.kakao.maps.Marker({
+              position,
+              map,
+              image: new window.kakao.maps.MarkerImage(
+                category.icon,
+                new window.kakao.maps.Size(40, 40),
+                { offset: new window.kakao.maps.Point(20, 40) }
+              ),
+            });
+          });
+
+        setCategoryMarkers((prev) => ({
+          ...prev,
+          [category.name]: newMarkers,
+        }));
+      },
+      {
+        location: map.getCenter(),
+        bounds: map.getBounds(),
+        radius: 20000,
+        useStrictBounds: true,
+      }
+    );
   };
 
   return (
-    <div className={`map-category-container ${showMore ? "show-more" : ""}`}>
-      {categories.slice(0, 5).map((category) => (
+    <div className={`map-category-container ${isOpen ? "open" : ""}`}>
+      <div className="category-list">
+        {categories
+          .slice(0, showMore ? categories.length : 5)
+          .map((category) => (
+            <button
+              key={category.name}
+              onClick={() => toggleCategory(category)}
+              className={`category-button ${
+                categoryMarkers[category.name] ? "active" : ""
+              }`}
+            >
+              {category.name}
+            </button>
+          ))}
         <button
-          key={category.name}
-          onClick={() => toggleCategory(category)}
-          className={`category-button ${
-            categoryMarkers[category.name] ? "active" : ""
-          }`}
+          onClick={() => setShowMore(!showMore)}
+          className="category-button more-button"
         >
-          {category.name}
+          {showMore ? "－" : "＋"}
         </button>
-      ))}
-
-      {showMore &&
-        categories.slice(5).map((category) => (
-          <button
-            key={category.name}
-            onClick={() => toggleCategory(category)}
-            className={`category-button ${
-              categoryMarkers[category.name] ? "active" : ""
-            }`}
-          >
-            {category.name}
-          </button>
-        ))}
-
+      </div>
       <button
-        onClick={() => setShowMore(!showMore)}
-        className="category-button more-button"
+        className="toggle-button"
+        onClick={() => setIsOpen((prev) => !prev)}
       >
-        {showMore ? "－" : "＋"}
+        {isOpen ? "〈" : "☰"}
       </button>
     </div>
   );

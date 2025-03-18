@@ -5,8 +5,7 @@ import LoginModal from "./pages/LoginModal";
 import RegisterModal from "./pages/RegisterModal";
 
 const App = () => {
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [currentModal, setCurrentModal] = useState(null); // 현재 열린 모달 상태
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
 
@@ -14,7 +13,6 @@ const App = () => {
     const storedUser = localStorage.getItem("user");
 
     if (storedUser && storedUser !== "undefined") {
-      // 'undefined' 문자열 체크
       try {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
@@ -26,19 +24,15 @@ const App = () => {
   }, []);
 
   const openLoginModal = () => {
-    setIsLoginModalOpen(true);
-  };
-
-  const closeLoginModal = () => {
-    setIsLoginModalOpen(false);
+    setCurrentModal("login"); // 로그인 모달 열기
   };
 
   const openRegisterModal = () => {
-    setIsRegisterModalOpen(true);
+    setCurrentModal("register"); // 회원가입 모달 열기
   };
 
-  const closeRegisterModal = () => {
-    setIsRegisterModalOpen(false);
+  const closeModal = () => {
+    setCurrentModal(null); // 모달 닫기
   };
 
   const loginUser = (userData) => {
@@ -47,6 +41,7 @@ const App = () => {
     if (userData) {
       localStorage.setItem("user", JSON.stringify(userData));
     }
+    closeModal(); // 로그인 성공 후 모달 닫기
   };
 
   const logoutUser = () => {
@@ -64,10 +59,21 @@ const App = () => {
         openLoginModal={openLoginModal}
         openRegisterModal={openRegisterModal}
       />
-      {isLoginModalOpen && (
-        <LoginModal closeModal={closeLoginModal} loginUser={loginUser} />
+
+      {/* 모달 상태에 따라 렌더링 */}
+      {currentModal === "login" && (
+        <LoginModal
+          closeModal={closeModal}
+          loginUser={loginUser}
+          openRegisterModal={openRegisterModal}
+        />
       )}
-      {isRegisterModalOpen && <RegisterModal closeModal={closeRegisterModal} />}
+      {currentModal === "register" && (
+        <RegisterModal
+          closeModal={closeModal}
+          openLoginModal={openLoginModal}
+        />
+      )}
 
       <Map user={user} isLoggedIn={isLoggedIn} userId={user?.id} />
     </div>

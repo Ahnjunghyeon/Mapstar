@@ -2,7 +2,12 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./SearchHistory.css";
 
-const SearchHistory = ({ user, isLoggedIn }) => {
+const SearchHistory = ({
+  user,
+  isLoggedIn,
+  onSearchHistoryClick,
+  closeHistory,
+}) => {
   const [searchHistory, setSearchHistory] = useState([]);
   const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
 
@@ -64,20 +69,65 @@ const SearchHistory = ({ user, isLoggedIn }) => {
     }
   };
 
+  const handleDeleteAll = async () => {
+    const confirmDeleteAll = window.confirm("모든 검색 기록을 지우시겠습니까?");
+    if (confirmDeleteAll) {
+      try {
+        console.log("📡 모든 삭제 요청");
+
+        const response = await axios.delete(
+          "http://localhost:5000/api/search-history/all",
+          {
+            data: { userId: user.id },
+          }
+        );
+
+        console.log("✅ 모든 검색 기록 삭제 완료:", response.data);
+
+        fetchSearchHistory();
+      } catch (error) {
+        console.error(
+          "❌ 모든 검색 기록 삭제 오류:",
+          error.response ? error.response.data : error.message
+        );
+      }
+    } else {
+      console.log("❌ 모든 삭제 취소됨");
+    }
+  };
+
+  const handleHistoryClick = (searchTerm) => {
+    if (onSearchHistoryClick) {
+      onSearchHistoryClick(searchTerm); // 클릭한 검색어를 부모로 전달
+    }
+  };
+
   return (
     <div className="search-history">
-      <h3>검색 기록</h3>
+      <div className="history-header">
+        <h3>검색 기록</h3>
+        <button className="delete-all-button" onClick={handleDeleteAll}>
+          전체삭제
+        </button>
+      </div>
+
       <ul>
         {searchHistory.map((historyItem, index) => (
-          <li key={index} className="search-history-item">
-            <span className="search-term">
-              {historyItem.search_term || "검색어 없음"}
-            </span>
-            <span className="time">
-              {historyItem.search_time
-                ? new Date(historyItem.search_time).toLocaleString()
-                : "시간 정보 없음"}
-            </span>
+          <li
+            key={index}
+            className="search-history-item"
+            onClick={() => handleHistoryClick(historyItem.search_term)} // 검색어 클릭 시 처리
+          >
+            <div className="search-info">
+              <span className="search-term">
+                {historyItem.search_term || "검색어 없음"}
+              </span>
+              <span className="time">
+                {historyItem.search_time
+                  ? new Date(historyItem.search_time).toLocaleString()
+                  : "시간 정보 없음"}
+              </span>
+            </div>
             <button
               className="delete-button"
               onClick={(e) =>
@@ -88,11 +138,14 @@ const SearchHistory = ({ user, isLoggedIn }) => {
                 )
               }
             >
-              삭제
+              X
             </button>
           </li>
         ))}
       </ul>
+      <button className="close-history" onClick={closeHistory}>
+        ▲
+      </button>
     </div>
   );
 };

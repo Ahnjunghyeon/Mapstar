@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import SearchHistory from "./SearchHistory";
-
 import "./MapSearch.css";
 
 const MapSearch = ({
@@ -10,37 +9,14 @@ const MapSearch = ({
   isLoggedIn,
   user,
   onSelect,
+  searchHistory,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
-  const [searchHistory, setSearchHistory] = useState([]);
-  const [isAutoCompleteSelected, setIsAutoCompleteSelected] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-
   const searchHistoryRef = useRef(null);
 
-  useEffect(() => {
-    if (isLoggedIn && user) {
-      const fetchSearchHistory = async () => {
-        try {
-          console.log("📡 검색 기록 요청:", user.id);
-          const response = await axios.get(
-            `http://localhost:5000/api/search-history?userId=${user.id}`
-          );
-          console.log("✅ 검색 기록 응답:", response.data);
-          setSearchHistory(response.data);
-        } catch (error) {
-          console.error(
-            "❌ 검색 기록 로드 실패:",
-            error.response ? error.response.data : error.message
-          );
-        }
-      };
-
-      fetchSearchHistory();
-    }
-  }, [isLoggedIn, user]);
-
+  // 🔹 외부 클릭 시 검색 기록 창 닫기
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -50,14 +26,11 @@ const MapSearch = ({
         setShowHistory(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // 🔹 자동완성 검색
   useEffect(() => {
     if (!searchTerm.trim()) {
       setSuggestions([]);
@@ -69,32 +42,24 @@ const MapSearch = ({
 
     const fetchSuggestions = async () => {
       try {
-        const geocodeResults = await new Promise((resolve, reject) => {
-          geocoder.addressSearch(searchTerm, (result, status) => {
-            if (status === window.kakao.maps.services.Status.OK) {
-              resolve(result);
-            } else {
-              resolve([]);
-            }
-          });
-        });
+        const [geocodeResults, placesResults] = await Promise.all([
+          new Promise((resolve) =>
+            geocoder.addressSearch(searchTerm, (res, status) =>
+              resolve(
+                status === window.kakao.maps.services.Status.OK ? res : []
+              )
+            )
+          ),
+          new Promise((resolve) =>
+            ps.keywordSearch(searchTerm, (data, status) =>
+              resolve(
+                status === window.kakao.maps.services.Status.OK ? data : []
+              )
+            )
+          ),
+        ]);
 
-        const placesResults = await new Promise((resolve, reject) => {
-          ps.keywordSearch(searchTerm, (data, status) => {
-            if (status === window.kakao.maps.services.Status.OK) {
-              resolve(data);
-            } else {
-              resolve([]);
-            }
-          });
-        });
-
-        const combinedResults = [...geocodeResults, ...placesResults].filter(
-          (value, index, self) =>
-            index === self.findIndex((v) => v.id === value.id)
-        );
-
-        setSuggestions(combinedResults);
+        setSuggestions([...geocodeResults, ...placesResults]);
       } catch (error) {
         console.error("자동완성 검색 오류:", error);
       }
@@ -103,93 +68,66 @@ const MapSearch = ({
     fetchSuggestions();
   }, [searchTerm]);
 
-  const executeSearch = async () => {
-    if (!searchTerm.trim()) return;
+  // 🔹 검색 실행 함수
+  const executeSearch = async (term) => {
+    if (!term.trim()) return;
+    setSearchTerm(term);
 
     const geocoder = new window.kakao.maps.services.Geocoder();
     const ps = new window.kakao.maps.services.Places();
 
-    const geocodeSearch = new Promise((resolve, reject) => {
-      geocoder.addressSearch(searchTerm, (result, status) => {
-        if (status === window.kakao.maps.services.Status.OK) {
-          resolve(result);
-        } else if (status === window.kakao.maps.services.Status.ZERO_RESULT) {
-          resolve([]);
-        } else {
-          console.warn("주소 검색 실패", status);
-          resolve([]);
-        }
-      });
-    });
-
-    const placesSearch = new Promise((resolve, reject) => {
-      ps.keywordSearch(searchTerm, (data, status) => {
-        if (status === window.kakao.maps.services.Status.OK) {
-          resolve(data);
-        } else {
-          console.warn("키워드 검색 실패", status);
-          resolve([]);
-        }
-      });
-    });
-
     try {
       const [geocodeResult, placesResult] = await Promise.all([
-        geocodeSearch,
-        placesSearch,
+        new Promise((resolve) =>
+          geocoder.addressSearch(term, (res, status) =>
+            resolve(status === window.kakao.maps.services.Status.OK ? res : [])
+          )
+        ),
+        new Promise((resolve) =>
+          ps.keywordSearch(term, (data, status) =>
+            resolve(status === window.kakao.maps.services.Status.OK ? data : [])
+          )
+        ),
       ]);
-      const combinedResults = [...geocodeResult, ...placesResult];
-      const searchData = { results: combinedResults, searchTerm };
 
-      handleSearchResults(searchData);
+      const combinedResults = [...geocodeResult, ...placesResult];
+      handleSearchResults({ results: combinedResults, searchTerm: term });
 
       if (combinedResults.length > 0) {
-        const firstResult = combinedResults[0];
-        onSelect(firstResult);
+        onSelect(combinedResults[0]);
       }
     } catch (error) {
       console.error("검색 실패:", error);
     }
   };
 
+  // 🔹 검색어 선택 시 처리
   const handleSelect = (item) => {
-    setSearchTerm(item.place_name || item.address_name);
+    const selectedTerm = item.place_name || item.address_name;
+    setSearchTerm(selectedTerm);
     setSuggestions([]);
-    setIsAutoCompleteSelected(true);
     onSelect(item);
 
-    if (isLoggedIn && user) {
-      saveSearchHistory(user.id, item.place_name || item.address_name);
-    }
-
-    executeSearch();
+    if (isLoggedIn && user) saveSearchHistory(user.id, selectedTerm);
+    executeSearch(selectedTerm);
   };
 
-  const saveSearchHistory = async (userId, searchTerm) => {
+  // 🔹 검색 기록 저장
+  const saveSearchHistory = async (userId, term) => {
+    if (!userId || !term.trim()) return;
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/search-history",
-        {
-          userId,
-          searchTerm,
-          time: new Date().toISOString(),
-        }
-      );
-      console.log("검색 기록 저장 완료", response.data);
+      await axios.post("http://localhost:5000/api/search-history", {
+        userId,
+        searchTerm: term,
+        time: new Date().toISOString(),
+      });
     } catch (error) {
       console.error("검색 기록 저장 오류:", error);
     }
   };
 
-  const handleInputChange = (e) => {
-    setSearchTerm(e.target.value);
-    setIsAutoCompleteSelected(false);
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      executeSearch();
-    }
+  const handleCloseHistory = () => {
+    setShowHistory(false); // 검색 기록 닫기
   };
 
   return (
@@ -197,39 +135,56 @@ const MapSearch = ({
       <input
         type="text"
         value={searchTerm}
-        onChange={handleInputChange}
-        onKeyDown={handleKeyDown}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && executeSearch(searchTerm)}
         placeholder="주소 또는 상호명 검색"
         className="search-input"
         onFocus={() => setShowHistory(true)}
       />
 
-      <button onClick={executeSearch} className="search-button">
+      <button
+        onClick={() => executeSearch(searchTerm)}
+        className="search-button"
+      >
         검색
       </button>
 
+      {/* 🔹 자동완성 및 검색 기록 표시 */}
       <div className="autocomplete-suggestions">
-        {searchTerm.trim() === "" ? (
-          <ul></ul>
-        ) : (
-          suggestions.length > 0 && (
-            <ul>
-              {suggestions.map((item, index) => (
-                <li key={index} onClick={() => handleSelect(item)}>
-                  {item.place_name || item.address_name}
-                </li>
-              ))}
-            </ul>
-          )
+        {/* 자동완성 결과가 있을 때 */}
+        {suggestions.length > 0 && (
+          <ul>
+            {suggestions.map((item, index) => (
+              <li key={index} onClick={() => handleSelect(item)}>
+                {item.place_name || item.address_name}
+              </li>
+            ))}
+          </ul>
         )}
 
-        {searchTerm.trim() === "" &&
+        {/* 자동완성 결과가 없을 때 검색 기록 표시 */}
+        {suggestions.length === 0 &&
           searchHistory.length > 0 &&
           showHistory && (
             <div ref={searchHistoryRef}>
-              <SearchHistory user={user} isLoggedIn={isLoggedIn} />
+              <SearchHistory
+                user={user}
+                isLoggedIn={isLoggedIn}
+                onSearchHistoryClick={executeSearch}
+                closeHistory={handleCloseHistory} // 닫기 버튼 클릭 시 호출
+              />
             </div>
           )}
+
+        {/* 🔹 자동완성 닫기 버튼 추가 */}
+        {suggestions.length > 0 && (
+          <button
+            className="close-suggestions"
+            onClick={() => setSuggestions([])}
+          >
+            ▲ 닫기
+          </button>
+        )}
       </div>
     </div>
   );

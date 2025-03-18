@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import "./Modal.css";
 
-const RegisterModal = ({ closeModal }) => {
+const RegisterModal = ({ closeModal, openLoginModal }) => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,27 +36,37 @@ const RegisterModal = ({ closeModal }) => {
         <form onSubmit={handleRegister}>
           <input
             type="text"
-            placeholder="Username"
+            placeholder="이 름"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
+            className="modal-input"
           />
           <input
             type="email"
-            placeholder="Email"
+            placeholder="이메일"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            className="modal-input"
           />
           <input
             type="password"
-            placeholder="Password"
+            placeholder="비밀번호"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            className="modal-input"
           />
+
           <button type="submit">회원가입</button>
         </form>
+        <p>
+          이미 계정이 있으신가요?{" "}
+          <span className="login-link" onClick={openLoginModal}>
+            로그인
+          </span>
+        </p>
       </div>
     </div>
   );

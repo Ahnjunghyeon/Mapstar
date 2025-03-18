@@ -1,87 +1,118 @@
+/* Modal의 기본 스타일 */
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.3); /* 배경 어두운 투명도 감소 */
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
+  overflow: hidden;
 }
 
+/* Modal의 내용 스타일 */
 .modal-content {
-  background-color: #fff;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  padding: 30px; /* 여백을 약간 줄여서 균형을 맞춤 */
+  border-radius: 16px; /* 모서리 더 둥글게 */
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15); /* 더 부드럽고 자연스러운 그림자 */
   width: 100%;
-  max-width: 400px;
+  max-width: 450px;
   text-align: center;
   position: relative;
+  transition: all 0.3s ease;
+  margin: 20px; /* 여백을 더 추가하여 디자인을 여유롭게 */
 }
 
+/* Modal 닫기 버튼 */
 .close {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 24px;
+  top: 15px;
+  right: 15px;
+  font-size: 32px;
   font-weight: bold;
-  color: #333;
+  color: #777;
   cursor: pointer;
   transition: color 0.3s ease;
 }
 
 .close:hover {
-  color: #e74c3c;
+  color: #e74c3c; /* 트렌디한 빨간색 */
 }
 
+/* 제목 스타일 */
 h2 {
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 20px;
+  font-size: 28px; /* 제목 크기 약간 키움 */
+  font-weight: 600;
+  color: #2c3e50; /* 어두운 파란색으로 차분한 느낌 */
+  margin-bottom: 20px; /* 아래쪽 여백을 줄여서 균형을 맞춤 */
+  letter-spacing: 0.5px;
 }
 
+/* 오류 메시지 스타일 */
 .error {
   color: #e74c3c;
   font-size: 14px;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
-input {
+.modal-input {
   width: 100%;
-  padding: 10px;
+  padding: 14px;
   margin: 10px 0;
-  border-radius: 5px;
+  border-radius: 8px;
   border: 1px solid #ddd;
   font-size: 16px;
   color: #333;
-  transition: border 0.3s ease;
+  background-color: #f5f6fa;
+  transition: border 0.3s ease, background-color 0.3s ease;
+  box-sizing: border-box;
 }
 
-input:focus {
-  border-color: #3498db;
+.modal-input:focus {
+  border-color: #2980b9;
   outline: none;
+  background-color: #ffffff;
 }
 
+/* 버튼 스타일 */
 button {
   width: 100%;
-  padding: 12px;
-  background-color: #3498db;
+  padding: 10px;
+  background-color: #2980b9; /* 파란색 버튼 */
   color: #fff;
-  font-size: 16px;
+  font-size: 18px;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  box-sizing: border-box;
 }
 
+/* 버튼 hover 시 */
 button:hover {
-  background-color: #2980b9;
+  background-color: #3498db; /* 버튼 색상 다크 모드 */
 }
 
+/* 회원가입/로그인 링크 스타일 */
+.register-link,
+.login-link {
+  color: #2980b9; /* 파란색 링크 */
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-top: 12px; /* 링크의 여백을 추가하여 깔끔하게 배치 */
+}
+
+.register-link:hover,
+.login-link:hover {
+  color: #3498db; /* 링크 호버 시 다크 파란색 */
+}
+
+/* 모바일 화면에서의 반응형 디자인 */
 @media (max-width: 600px) {
   .modal-content {
     padding: 20px;
@@ -89,14 +120,14 @@ button:hover {
   }
 
   h2 {
-    font-size: 20px;
+    font-size: 22px;
   }
 
   input {
-    font-size: 14px;
+    font-size: 15px;
   }
 
   button {
-    font-size: 14px;
+    font-size: 16px;
   }
 }
