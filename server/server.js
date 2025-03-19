@@ -182,6 +182,29 @@ app.delete("/api/search-history", (req, res) => {
     }
   );
 });
+app.delete("/api/search-history/all", (req, res) => {
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ error: "userId가 필요합니다." });
+  }
+
+  const query = "DELETE FROM search_history WHERE user_id = ?";
+
+  connection.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error("❌ 모든 삭제 오류:", err);
+      return res.status(500).json({ error: "데이터베이스 오류" });
+    }
+
+    // 삭제된 기록이 없다면
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: "삭제할 기록이 없습니다." });
+    }
+
+    res.status(200).json({ message: "모든 검색 기록이 삭제되었습니다." });
+  });
+});
 
 app.listen(port, () => {
   console.log(`서버가 http://localhost:${port}에서 실행 중입니다`);

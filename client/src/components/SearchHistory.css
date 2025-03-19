@@ -1,7 +1,6 @@
 .search-history {
   position: inherit;
   max-height: 300px;
-  margin-top: 10px; /* 5px 위로 이동 */
 }
 .search-history h3 {
   font-size: 18px;
@@ -104,10 +103,9 @@
 
 /* 🔹 히스토리 닫기 버튼 스타일 */
 .close-history {
-  bottom: 0;
-  height: 30px;
+  bottom: -10;
+  height: 20px;
   width: 100%;
-  padding: 10px;
   font-size: 15px;
   font-weight: bold;
   background-color: #f9f9f9;

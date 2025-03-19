@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "./MapCategory.css";
 
 const MapCategory = ({ map }) => {
   const [categoryMarkers, setCategoryMarkers] = useState({});
   const [showMore, setShowMore] = useState(false);
-  const [isOpen, setIsOpen] = useState(false); // 사이드 메뉴 열림 상태
+  const [isOpen, setIsOpen] = useState(false);
+  const categoryRef = useRef(null);
 
   const categories = [
     { name: "지하철역", code: "SW8", icon: "/subway.png" },
@@ -76,9 +77,22 @@ const MapCategory = ({ map }) => {
     );
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (categoryRef.current && !categoryRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className={`map-category-container ${isOpen ? "open" : ""}`}>
-      <div className="category-list">
+      <div className={`category-list ${showMore ? "open" : ""}`}>
         {categories
           .slice(0, showMore ? categories.length : 5)
           .map((category) => (
@@ -103,7 +117,7 @@ const MapCategory = ({ map }) => {
         className="toggle-button"
         onClick={() => setIsOpen((prev) => !prev)}
       >
-        {isOpen ? "〈" : "☰"}
+        {isOpen ? "⇦" : "⇨"}
       </button>
     </div>
   );

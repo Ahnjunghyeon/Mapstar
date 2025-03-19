@@ -2,29 +2,26 @@ html,
 body {
   margin: 0;
   padding: 0;
-  width: 100vw;
-  height: 100vh;
-  /* overflow: hidden;  */
+  width: 100%;
 }
 
 .map-container {
   position: relative;
-  width: 100vw; /* 전체 화면 너비 */
-  height: 100vh; /* 전체 화면 높이 (필요에 따라 조절) */
-  margin: 0;
+  height: 85vh;
+  margin: 2px;
   padding: 0;
 }
 
 .map {
-  width: 100%; /* 전체 화면 너비 */
-  height: 100%; /* 기존 높이 유지 */
-  margin: 0; /* 여백 제거 */
+  width: 100%;
+  height: 100%;
+  margin: 0;
 }
 
 .reset-button {
   position: absolute;
-  bottom: 20px;
-  left: 10px;
+  bottom: -30px;
+  right: 30px;
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -83,4 +80,23 @@ body {
 .save-marker-button:hover,
 .remove-marker-button:hover {
   opacity: 0.8;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 601px) {
+  .map-container {
+    position: relative;
+    height: 89vh;
+    margin: 2px;
+    padding: 0;
+  }
+  .reset-button {
+    bottom: -20px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+  }
+}
+
+@media (max-width: 480px) {
 }

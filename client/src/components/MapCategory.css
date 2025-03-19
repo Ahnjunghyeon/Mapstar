@@ -1,7 +1,7 @@
 .map-category-container {
   position: absolute;
-  top: 200px;
-  left: -120px; /* 처음엔 왼쪽으로 숨김 */
+  top: 220px;
+  left: -120px;
   transform: translateY(-50%);
   background: rgba(255, 255, 255, 0);
   border-radius: 12px;
@@ -10,14 +10,17 @@
   flex-direction: row;
   align-items: center;
   transition: left 0.3s ease-in-out;
-  z-index: 1000;
+  z-index: 99;
+  width: 300px; /* 기본 너비 설정 */
 }
 
 .map-category-container.open {
-  left: 0; /* 열리면 왼쪽에서 나타남 */
+  left: 0;
 }
 
 .toggle-button {
+  height: auto;
+  width: 40px;
   position: relative;
   top: -50px;
   margin-left: 4px;
@@ -33,7 +36,8 @@
 }
 
 .toggle-button:hover {
-  background: #357ab8;
+  background: #ffffff00;
+  color: #ff6565;
 }
 
 .category-list {
@@ -41,6 +45,13 @@
   flex-direction: column;
   align-items: center;
   padding-left: 8px;
+}
+
+.category-list.open {
+  position: relative;
+  top: 129px;
+  max-height: 500px;
+  animation: drop 0.4s ease-in-out forwards;
 }
 
 .category-button {
@@ -83,4 +94,75 @@
 
 .more-button:hover {
   filter: brightness(0.9);
+}
+
+@keyframes drop {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .map-category-container {
+    position: absolute;
+    top: 150px;
+    left: -100px;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0);
+    border-radius: 12px;
+    padding: 8px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    transition: left 0.3s ease-in-out;
+    z-index: 99;
+    width: 300px;
+  }
+
+  .category-button {
+    font-size: 12px;
+    width: 80px;
+    top: -35px;
+    padding: 6px 10px;
+  }
+
+  .more-button {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .toggle-button {
+    font-size: 28px;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .map-category-container {
+    width: 180px;
+  }
+
+  .category-button {
+    font-size: 10px;
+    width: 70px;
+    padding: 5px 8px;
+  }
+
+  .more-button {
+    font-size: 10px;
+    padding: 5px 8px;
+  }
+
+  .toggle-button {
+    font-size: 24px; /* 아주 작은 화면에서 더 작게 */
+    padding: 6px;
+  }
 }

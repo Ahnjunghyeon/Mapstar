@@ -16,7 +16,6 @@ const MapSearch = ({
   const [showHistory, setShowHistory] = useState(false);
   const searchHistoryRef = useRef(null);
 
-  // 🔹 외부 클릭 시 검색 기록 창 닫기
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -30,7 +29,6 @@ const MapSearch = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 🔹 자동완성 검색
   useEffect(() => {
     if (!searchTerm.trim()) {
       setSuggestions([]);
@@ -68,7 +66,6 @@ const MapSearch = ({
     fetchSuggestions();
   }, [searchTerm]);
 
-  // 🔹 검색 실행 함수
   const executeSearch = async (term) => {
     if (!term.trim()) return;
     setSearchTerm(term);
@@ -101,7 +98,6 @@ const MapSearch = ({
     }
   };
 
-  // 🔹 검색어 선택 시 처리
   const handleSelect = (item) => {
     const selectedTerm = item.place_name || item.address_name;
     setSearchTerm(selectedTerm);
@@ -112,7 +108,6 @@ const MapSearch = ({
     executeSearch(selectedTerm);
   };
 
-  // 🔹 검색 기록 저장
   const saveSearchHistory = async (userId, term) => {
     if (!userId || !term.trim()) return;
     try {
@@ -127,7 +122,7 @@ const MapSearch = ({
   };
 
   const handleCloseHistory = () => {
-    setShowHistory(false); // 검색 기록 닫기
+    setShowHistory(false);
   };
 
   return (
@@ -137,7 +132,7 @@ const MapSearch = ({
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && executeSearch(searchTerm)}
-        placeholder="주소 또는 상호명 검색"
+        placeholder="🔍 주소 또는 상호명 검색"
         className="search-input"
         onFocus={() => setShowHistory(true)}
       />
@@ -149,9 +144,7 @@ const MapSearch = ({
         검색
       </button>
 
-      {/* 🔹 자동완성 및 검색 기록 표시 */}
       <div className="autocomplete-suggestions">
-        {/* 자동완성 결과가 있을 때 */}
         {suggestions.length > 0 && (
           <ul>
             {suggestions.map((item, index) => (
@@ -162,7 +155,6 @@ const MapSearch = ({
           </ul>
         )}
 
-        {/* 자동완성 결과가 없을 때 검색 기록 표시 */}
         {suggestions.length === 0 &&
           searchHistory.length > 0 &&
           showHistory && (
@@ -171,12 +163,11 @@ const MapSearch = ({
                 user={user}
                 isLoggedIn={isLoggedIn}
                 onSearchHistoryClick={executeSearch}
-                closeHistory={handleCloseHistory} // 닫기 버튼 클릭 시 호출
+                closeHistory={handleCloseHistory}
               />
             </div>
           )}
 
-        {/* 🔹 자동완성 닫기 버튼 추가 */}
         {suggestions.length > 0 && (
           <button
             className="close-suggestions"

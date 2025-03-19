@@ -125,8 +125,6 @@ const Map = ({ selectedRegion, user, isLoggedIn }) => {
 
   return (
     <div className="map-container">
-      <MapCategory map={map} />
-
       <MapSearch
         map={map}
         isLoggedIn={isLoggedIn}
@@ -140,6 +138,8 @@ const Map = ({ selectedRegion, user, isLoggedIn }) => {
         isLoggedIn={isLoggedIn}
         closeSelectedResult={() => setSelectedItem(null)}
       />
+      <MapCategory map={map} />
+
       <button onClick={resetMapPosition} className="reset-button">
         <img src="/reset-icon.png" alt="Reset Map" className="reset-icon" />
       </button>

@@ -76,7 +76,7 @@ const SearchHistory = ({
         console.log("📡 모든 삭제 요청");
 
         const response = await axios.delete(
-          "http://localhost:5000/api/search-history/all",
+          "http://localhost:5000/api/search-history/all", // API 경로가 맞는지 확인
           {
             data: { userId: user.id },
           }
@@ -98,12 +98,15 @@ const SearchHistory = ({
 
   const handleHistoryClick = (searchTerm) => {
     if (onSearchHistoryClick) {
-      onSearchHistoryClick(searchTerm); // 클릭한 검색어를 부모로 전달
+      onSearchHistoryClick(searchTerm);
     }
   };
 
   return (
     <div className="search-history">
+      <button className="close-history" onClick={closeHistory}>
+        ▲
+      </button>
       <div className="history-header">
         <h3>검색 기록</h3>
         <button className="delete-all-button" onClick={handleDeleteAll}>
@@ -116,7 +119,7 @@ const SearchHistory = ({
           <li
             key={index}
             className="search-history-item"
-            onClick={() => handleHistoryClick(historyItem.search_term)} // 검색어 클릭 시 처리
+            onClick={() => handleHistoryClick(historyItem.search_term)}
           >
             <div className="search-info">
               <span className="search-term">
@@ -143,9 +146,6 @@ const SearchHistory = ({
           </li>
         ))}
       </ul>
-      <button className="close-history" onClick={closeHistory}>
-        ▲
-      </button>
     </div>
   );
 };
